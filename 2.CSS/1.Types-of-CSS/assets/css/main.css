@@ -1,0 +1,15 @@
+body {
+  margin: 0;
+}
+
+.heading {
+  color: rgb(4, 0, 255);
+  background-color: rgb(0, 0, 0);
+  font-style: italic;
+  padding: 12px;
+}
+
+.logo {
+  color: tomato;
+  font-size: 24px;
+}
