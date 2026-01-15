@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID vs Classes</title>
+    <style>
+      #para-id {
+        color: tomato;
+      }
+
+      .para-class {
+        color: blue;
+        font-size: 20px;
+      }
+
+      .para-class2 {
+        color: green;
+        font-size: 24px;
+      }
+
+      body p {
+        font-size: 10px;
+      }
+
+      #body-id p#para-id {
+        font-size: 30px;
+      }
+
+      #body-id p#para-id,
+      #body-id h1#para2-id {
+        color: rgb(25, 112, 44);
+      }
+    </style>
+  </head>
+  <body id="body-id">
+    <p id="para-id" class="para-class para-class2">Hello Paragraph</p>
+    <h1 id="para2-id" class="para2-class para2-class2">Hello Paragraph</h1>
+
+    <div id="div1">
+      <div id="div2">
+        <p id="para-id">Hello Nested Div Paragraph</p>
+        <p>Hello Nested Div Paragraph</p>
+      </div>
+    </div>
+  </body>
+</html>
