@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flex:JC</title>
+    <style>
+      .d-flex {
+        display: flex;
+      }
+      .row {
+        flex-direction: row;
+      }
+      .col {
+        flex-direction: column;
+      }
+      .row-reverse {
+        flex-direction: row-reverse;
+      }
+
+      .elem-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .primary-container {
+        background-color: lightseagreen;
+        padding: 12px;
+        justify-content: normal;
+        border: 1px solid black;
+      }
+
+      .j-flex-end {
+        justify-content: flex-end;
+      }
+
+      .j-space-between {
+        justify-content: space-between;
+      }
+      .j-space-around {
+        justify-content: space-around;
+      }
+      .j-space-evenly {
+        justify-content: space-evenly;
+      }
+      .secondary-container {
+        background-color: rgb(178, 32, 156);
+        padding: 6px;
+        border: 1px solid black;
+      }
+
+      .item {
+        background-color: lightcoral;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="d-flex row primary-container">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+    <div class="d-flex row primary-container j-flex-end">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+
+    <div class="d-flex row primary-container j-space-between">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+
+    <div class="d-flex row primary-container j-space-around">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+
+    <div class="d-flex row primary-container j-space-evenly">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+
+    <div class="d-flex col secondary-container">
+      <div class="item">A</div>
+      <div class="item">B</div>
+      <div class="item">C</div>
+      <div class="item">D</div>
+    </div>
+  </body>
+</html>
