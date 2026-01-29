@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WhatsApp-like PiP Video</title>
+
+    <style>
+      body {
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(#0b141a, #1f2c34);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: system-ui, sans-serif;
+      }
+
+      .container {
+        text-align: center;
+      }
+
+      button {
+        background: #25d366;
+        border: none;
+        padding: 14px 22px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #000;
+      }
+
+      video {
+        display: none; /* hidden, PiP will show it */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>WhatsApp-style Video Call</h2>
+      <button id="pipBtn">Start Picture-in-Picture</button>
+    </div>
+
+    <video id="video" autoplay muted playsinline></video>
+
+    <script>
+      const video = document.getElementById("video");
+      const pipBtn = document.getElementById("pipBtn");
+
+      async function startCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        video.srcObject = stream;
+        await video.play();
+      }
+
+      pipBtn.addEventListener("click", async () => {
+        if (!document.pictureInPictureEnabled) {
+          alert("Picture-in-Picture not supported in this browser.");
+          return;
+        }
+
+        if (video.readyState === 0) {
+          await startCamera();
+        }
+
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          await video.requestPictureInPicture();
+        }
+      });
+    </script>
+  </body>
+</html>
