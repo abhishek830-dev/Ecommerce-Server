@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Absolute</title>
+    <style>
+      .element {
+        width: 100px;
+        height: 100px;
+        background-color: lightgreen;
+        margin: 10px;
+        text-align: center;
+        line-height: 100px;
+      }
+      .element:nth-child(even) {
+        background-color: lightsalmon;
+      }
+
+      .ghost {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="element">A</div>
+    <div class="element">B</div>
+    <div class="element ghost">C</div>
+    <div class="element">D</div>
+    <div class="element">E</div>
+  </body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitter Block</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=more_horiz"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+  </head>
+  <style>
+    body {
+      background-color: #000000;
+      box-sizing: border-box;
+    }
+    .parent-container {
+      display: flex;
+      gap: 10px;
+      /* border: 1px solid #e92424; */
+      padding: 5px;
+      width: 490px;
+      border: 0.4px solid silver;
+      color: white;
+    }
+    img {
+      display: flex;
+      width: 40%;
+      flex-direction: row;
+      gap: 10px;
+      border-radius: 15px;
+    }
+    .picture {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .profile img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .main {
+      width: 400px;
+    }
+    .head {
+      display: flex;
+      font-size: 20px;
+      justify-content: space-between;
+      align-items: center;
+      /* gap: 50px; */
+    }
+    .verified {
+      color: #1a73e8; /* blue check */
+      font-size: 18px;
+      vertical-align: middle;
+    }
+
+    /* ul li {
+      list-style-type: none;
+    } */
+    .reach {
+      display: flex;
+      margin-top: 10px;
+      justify-content: space-between;
+    }
+    .material-icons-outlined {
+      font-size: 22px;
+      color: rgb(255, 255, 255);
+    }
+
+    .text-secondary {
+      color: gray;
+      font-size: 14px;
+    }
+
+    .left-elem {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .right-elem {
+      display: flex;
+      align-items: center;
+    }
+    .name {
+      font-weight: bold;
+    }
+    .details {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .right-actions {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+  <body>
+    <div class="parent-container">
+      <div class="profile">
+        <img
+          src="https://pbs.twimg.com/profile_images/1953413887153557504/ScQopC1C_x96.jpg"
+          alt=""
+        />
+      </div>
+      <div class="main">
+        <header class="head">
+          <div class="left-elem">
+            <span class="name text-bold">DAVID</span>
+            <span class="material-icons verified">verified</span>
+            <span class="92 text-secondary">1DAVID92 .</span>
+            <span class="hr text-secondary">15h</span>
+          </div>
+
+          <div class="right-elem">
+            <span class="material-icons-outlined">eco</span>
+            <span class="material-symbols-outlined"> more_horiz </span>
+          </div>
+        </header>
+        <div class="details">FASTEST TO CENTURIES IN ALL FORMATS!!!!</div>
+        <div class="container">
+          <ul>
+            <li>20 Innings:KL Rahul</li>
+            <li>52 Innings:Shubman Gill</li>
+            <li>70 Innings:Mohammad Rizwan</li>
+            <li>81 Innings:David Malan...</li>
+          </ul>
+        </div>
+        <div class="picture">
+          <img
+            src="https://pbs.twimg.com/media/G_lR0D8XQAAjHyw?format=jpg&name=small"
+            alt=""
+          />
+          <img
+            src="https://pbs.twimg.com/media/G_lR0D8XQAAjHyw?format=jpg&name=small"
+            alt=""
+          />
+        </div>
+        <span class="text-secondary">Ahmed says and 5 Others</span>
+        <div class="reach">
+          <div class="action-item">
+            <span class="material-icons-outlined text-secondary"
+              >chat_bubble_outline</span
+            >
+            <span class="text-secondary">24</span>
+          </div>
+          <div class="action-item">
+            <span class="material-icons-outlined text-secondary">repeat</span>
+            <span class="text-secondary">10</span>
+          </div>
+
+          <div class="action-item">
+            <span class="material-icons-outlined text-secondary">repeat</span>
+            <span class="text-secondary">10</span>
+          </div>
+
+          <div class="action-item">
+            <span class="material-icons-outlined text-secondary"
+              >favorite_border</span
+            >
+            <span class="text-secondary">1.4k</span>
+          </div>
+
+          <div class="action-item">
+            <span class="material-icons-outlined text-secondary"
+              >bar_chart</span
+            >
+            <span class="text-secondary">246k</span>
+          </div>
+
+          <div class="right-actions">
+            <span class="material-icons-outlined action text-secondary"
+              >bookmark_border</span
+            >
+            <span class="material-icons-outlined action text-secondary"
+              >ios_share</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
