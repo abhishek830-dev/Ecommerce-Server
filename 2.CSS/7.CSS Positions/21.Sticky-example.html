@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSS-only Sticky Example</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        width: 80%;
+        margin: 0 auto;
+      }
+
+      .sticky {
+        position: sticky;
+        top: 0;
+        max-height: 100vh; /* restrict height to viewport */
+        overflow-y: auto; /* allow scrolling inside sticky */
+        background-color: lightcoral;
+        padding: 10px;
+        border: 2px solid darkred;
+        margin-bottom: 20px;
+      }
+
+      .non-sticky {
+        background-color: lightblue;
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 18px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sticky">
+        <h1>Sticky Section</h1>
+        <p>Scroll me if content is tall; page scroll continues after that.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+          <li>Item 4</li>
+          <li>Item 5</li>
+          <li>Item 6</li>
+          <li>Item 7</li>
+          <li>Item 8</li>
+          <li>Item 9</li>
+          <li>Item 10</li>
+          <li>Item 11</li>
+          <li>Item 12</li>
+          <li>Item 13</li>
+        </ul>
+      </div>
+
+      <div class="non-sticky">
+        <h1>Normal Section 1</h1>
+        <p>Page scrolls normally here.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+
+      <div class="non-sticky">
+        <h1>Normal Section 2</h1>
+        <p>Page scrolls normally here too.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+
+      <div class="non-sticky">
+        <h1>Normal Section 2</h1>
+        <p>Page scrolls normally here too.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+
+      <div class="non-sticky">
+        <h1>Normal Section 2</h1>
+        <p>Page scrolls normally here too.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+
+      <div class="non-sticky">
+        <h1>Normal Section 2</h1>
+        <p>Page scrolls normally here too.</p>
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

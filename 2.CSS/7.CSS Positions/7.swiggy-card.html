@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swiggy Card</title>
+
+    <style>
+      .card {
+        width: 200px;
+        /* border: 1px solid #ccc; */
+        border-radius: 8px;
+      }
+
+      .header {
+        position: relative;
+      }
+
+      .card-img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+      }
+      .item-msg {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 999;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="header">
+        <img
+          class="card-img"
+          src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_660,e_grayscale/RX_THUMBNAIL/IMAGES/VENDOR/2024/8/15/a50ecf0e-e3ce-4960-b333-d169fcbd3dda_293290%20(1).jpg"
+          alt=""
+        />
+        <span class="item-msg">ITEMS AT 89</span>
+      </div>
+    </div>
+  </body>
+</html>
