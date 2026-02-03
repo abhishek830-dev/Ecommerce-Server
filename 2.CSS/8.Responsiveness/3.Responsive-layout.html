@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsive Layout</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #e9e9e9;
+      }
+
+      header {
+        background-color: #ffffff;
+        color: white;
+        padding: 10px;
+      }
+
+      .hamburger-menu {
+        display: none;
+      }
+      ul.nav-menu {
+        display: flex;
+        gap: 10px;
+      }
+
+      ul li {
+        list-style: none;
+        padding: 10px;
+        background-color: #f0f0f0;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        color: black;
+      }
+
+      aside.left-sidebar {
+        background-color: #fff;
+        width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+      }
+
+      .main-content {
+        padding: 12px;
+        display: flex;
+        background-color: #fff;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+      }
+
+      .d-flex {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+      }
+
+      .list {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .list .item {
+        background-color: tomato;
+        color: white;
+        padding: 10px;
+        height: 200px;
+        min-width: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 20%;
+      }
+
+      /* For tablets or medium-sized devices */
+      @media screen and (max-width: 768px) {
+        aside.left-sidebar {
+          background-color: red;
+          display: none;
+        }
+        .main-content {
+          padding: 24px;
+          font-size: 20px;
+        }
+
+        .list {
+          flex-direction: column;
+        }
+
+        .list .item {
+          height: 100px;
+          width: 100%;
+          flex: 1;
+          background-color: teal;
+          font-size: 28px;
+        }
+      }
+
+      /* For Mobile or smaller devices */
+      @media screen and (max-width: 480px) {
+        ul.nav-menu {
+          display: none;
+        }
+
+        .hamburger-menu {
+          display: block;
+          cursor: pointer;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="hamburger-menu">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <rect y="4" width="24" height="2" />
+            <rect y="11" width="24" height="2" />
+            <rect y="18" width="24" height="2" />
+          </svg>
+        </div>
+        <ul class="nav-menu">
+          <li class="item">Home</li>
+          <li class="item">About</li>
+          <li class="item">Contact</li>
+        </ul>
+      </nav>
+    </header>
+    <section class="d-flex">
+      <aside class="left-sidebar">Sidebar</aside>
+      <section class="main-content">
+        <div class="list">
+          <div class="item">Div Item</div>
+          <div class="item">Div Item</div>
+          <div class="item">Div Item</div>
+          <div class="item">Div Item</div>
+        </div>
+      </section>
+    </section>
+  </body>
+</html>
