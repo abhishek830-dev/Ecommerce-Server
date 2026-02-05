@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex Basis</title>
+
+    <style>
+        .box {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 12px
+        }
+
+        .item {
+            background-color: tomato;
+            color: white;
+            display: flex;
+            padding: 12px;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+
+
+        .fb-200 {
+            /* flex-basis: 200px; */
+        }
+
+        .fb-320 {
+            /* flex-basis: 320px */
+            /* width: 20% */
+        }
+
+        .fg-2 {
+            /* flex-grow: 1; */
+        }
+
+        .f-2 {
+            flex: 2
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="item fb-200 f-2">A</div>
+        <div class="item fg-2">B</div>
+        <div class="item">C</div>
+        <div class="item fb-320">D</div>
+
+    </div>
+
+
+</body>
+
+</html>
