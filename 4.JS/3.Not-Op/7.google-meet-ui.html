@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet Controls</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #202124;
+            font-family: Arial, sans-serif;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            background-color: #3c4043;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        /* Active States */
+        .active {
+            background-color: #1a73e8;
+        }
+
+        .danger {
+            background-color: #d93025;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <button id="micBtn" class="btn">🎤</button>
+        <button id="cameraBtn" class="btn">📷</button>
+        <button id="handBtn" class="btn">✋</button>
+    </div>
+
+    <script>
+        // ==============================
+        // STATE VARIABLES
+        // ==============================
+        let isMicOn = true;
+        let isCameraOn = true;
+        let isHandRaised = false;
+
+        // ==============================
+        // ELEMENT REFERENCES
+        // ==============================
+        const micBtn = document.getElementById("micBtn");
+        const cameraBtn = document.getElementById("cameraBtn");
+        const handBtn = document.getElementById("handBtn");
+
+        // ==============================
+        // TOGGLE FUNCTIONS
+        // ==============================
+
+        function toggleMic() {
+            // Way 1
+            isMicOn = !isMicOn;
+
+            // // Way 2
+            // if (isMicOn === true) {
+            //     isMicOn = false
+            // } else {
+            //     isMicOn = true
+            // }
+
+            // // Way 3
+            // isMicOn = isMicOn === true ? false : true;
+
+            updateMicUI();
+        }
+
+        function toggleCamera() {
+            isCameraOn = !isCameraOn;
+            updateCameraUI();
+        }
+
+        function toggleHand() {
+            isHandRaised = !isHandRaised;
+            updateHandUI();
+        }
+
+        // ==============================
+        // UI UPDATE FUNCTIONS
+        // ==============================
+
+        function updateMicUI() {
+            if (isMicOn) {
+                micBtn.classList.remove("danger");
+            } else {
+                micBtn.classList.add("danger");
+            }
+        }
+
+        function updateCameraUI() {
+            if (isCameraOn) {
+                cameraBtn.classList.remove("danger");
+            } else {
+                cameraBtn.classList.add("danger");
+            }
+        }
+
+        function updateHandUI() {
+            if (isHandRaised) {
+                handBtn.classList.add("active");
+            } else {
+                handBtn.classList.remove("active");
+            }
+        }
+
+        // ==============================
+        // EVENT LISTENERS
+        // ==============================
+
+        micBtn.addEventListener("click", toggleMic);
+        cameraBtn.addEventListener("click", toggleCamera);
+        handBtn.addEventListener("click", toggleHand);
+
+        // Initialize UI
+        updateMicUI();
+        updateCameraUI();
+        updateHandUI();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Form Validation</title>
+</head>
+
+<body>
+
+    <h2>Registration Form</h2>
+
+    <form onsubmit="return validateForm()">
+        <input type="text" id="name" placeholder="Enter Name"><br><br>
+        <input type="email" id="email" placeholder="Enter Email"><br><br>
+        <input type="password" id="password" placeholder="Enter Password"><br><br>
+        <input type="text" id="city" placeholder="Enter City"><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        function validateForm() {
+
+            var name = document.getElementById("name").value;
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+            var city = document.getElementById("city").value;
+
+
+            // isValidToVote === true -> if(isValidToVote)
+            // isValidToVote === false if(!isValidToVote)
+            if (!name) {
+                alert("Name is required");
+                return false;
+            }
+            else if (!email) {
+                alert("Email is required");
+                return false;
+            }
+            else if (!password) {
+                alert("Password is required");
+                return false;
+            }
+            else if (!city) {
+                alert("City is required");
+                return false;
+            }
+            else {
+                alert("Form submitted successfully!");
+                return true;
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>

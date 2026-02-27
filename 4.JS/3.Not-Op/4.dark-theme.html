@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dark Theme - Guard Block</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #ffffff;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Dark Theme (Guard Block Pattern)</h1>
+    <button onclick="toggleTheme()">Toggle Dark Mode</button>
+
+    <script>
+        let isDarkMode = false;
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+
+            // ✅ Guard block: exit early if NOT dark mode
+            if (!isDarkMode) {
+                document.body.style.backgroundColor = "#ffffff";
+                document.body.style.color = "#000000";
+                return; // exit function early
+            }
+
+            // Only runs if dark mode is true
+            document.body.style.backgroundColor = "#121212";
+            document.body.style.color = "#ffffff";
+        }
+    </script>
+
+    <script>
+        let isDarkModeV2 = true;
+
+        //
+        isDarkModeV2 = isDarkModeV2 === true ? false : true
+        isDarkModeV2 = isDarkModeV2 ? false : true;
+
+        if (isDarkModeV2 === true) {
+            isDarkModeV2 = false
+        } else {
+            isDarkModeV2 = true
+        }
+
+        isDarkModeV2 = !isDarkModeV2
+    </script>
+
+</body>
+
+</html>
