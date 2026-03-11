@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Execution Context</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
+
+<script>
+    var a = 10; // undefined
+    let b = 20; // NA
+
+    // Accidental variable for ex - test = 30 => window.test = 30;
+    test = 30; // NA -> Not defined(Rakshit) -> Undefined (Ayush) -> Won't create in memory
+
+    if (true) {
+        var a1 = 20; // undefined
+        dummy = "Rakshit"; // undefined -> Not defined(Rakshit)
+        let d2 = "Amey"; // Won't touch during creation
+    }
+
+    var test1 = "Pinky"; // undefined
+    let t2 = "Rahul"; // NA
+</script>
+
+<script src="main.js"></script>

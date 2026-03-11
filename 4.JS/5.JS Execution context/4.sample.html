@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
+<script>
+
+    // console.log(addNum2(1, 2));
+
+    console.log("Welcome to code")
+    // Copy as it is - Global scope
+    // Regular & normal function
+    function sendGreetings(name) {
+        let x = Date.now();
+        return `Hello ${name}, your greeting id is ${x}`;
+    }
+
+    // NA -> script
+    // Variable function or function expression
+    const addNum = (a, b) => {
+        let sum = 0;
+        sum = a + b;
+        return sum;
+    }
+
+    // undefined -> Global scope
+    // Variable function or function expression
+    var addNum2 = (a, b) => {
+        let sum = 0;
+        sum = a + b;
+        return sum;
+    }
+
+    const greetingsMsg = sendGreetings("Raskhit"); // NA -> Script scope
+    const greetingsMsg2 = sendGreetings("Vikas"); // NA -> Script scope
+    const sum1 = addNum(10, 234); // NA -> Script scope
+    const sum2 = addNum2(15670, 234); // NA -> Script scope
+
+</script>
