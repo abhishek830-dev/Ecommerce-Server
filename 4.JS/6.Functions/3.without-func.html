@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Without Func HTML Dom</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="first">
+            <p id="first-para"></p>
+            <button id="first-btn">First Btn</button>
+        </div>
+        <div class="second">
+            <p id="second-para"></p>
+            <button id="second-btn">Second Btn</button>
+        </div>
+        <div class="third">
+            <p id="third-para"></p>
+            <button id="third-btn">Third Btn</button>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+<script>
+    const firstBtn = document.getElementById("first-btn");
+    const secondBtn = document.getElementById("second-btn");
+    const thirdBtn = document.getElementById("third-btn");
+
+    const firstParaElem = document.getElementById("first-para");
+    const secondParaElem = document.getElementById("second-para");
+    const thirdParaElem = document.getElementById("third-para");
+
+    firstBtn.addEventListener("click", () => {
+
+        if (firstParaElem) {
+            firstParaElem.textContent = "Clicked";
+        }
+    })
+
+    secondBtn.addEventListener("click", () => {
+
+        if (secondParaElem) {
+            secondParaElem.textContent = "Clicked";
+        }
+    })
+    thirdBtn.addEventListener("click", () => {
+
+        if (thirdParaElem) {
+            thirdParaElem.textContent = "Clicked";
+        }
+    })
+</script>
