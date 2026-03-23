@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnerText vs InnerHTML</title>
+</head>
+
+<body>
+    <p id="header-text">Welcome to <strong style="color: red;">comparision</strong></p>
+    <div id="box1"></div>
+    <div id="box11"></div>
+    <div id="box2"></div>
+</body>
+
+</html>
+<script>
+    const bodyElem = document.body;
+    const box1Elem = document.getElementById("box1");
+    const box11Elem = document.getElementById("box11");
+    const box2Elem = document.getElementById("box2");
+    const headerTextElem = document.getElementById("header-text")
+
+    // innerText example
+    box1Elem.innerText = "Hello Pinky, how are you <strong>doing</strong> or <a href=''>Click here</a>?";
+
+    // textContent example
+    box11Elem.textContent = "Hello Pinky, how are you <strong>doing</strong> or <a href=''>Click here</a>?";
+
+    // innerHTML example
+    box2Elem.innerHTML = "Hello Pinky, how are you <strong>doing</strong> or <a href=''>Click here</a>?";
+
+    // get headerText
+    const headerTextData = headerTextElem.innerText;
+
+    // get headerHTML
+    const headerTextHTMLData = headerTextElem.innerHTML;
+
+    console.log("headerTextData:", headerTextData);
+    console.log("headerTextHTMLData:", headerTextHTMLData);
+    console.log("BodyText: ", bodyElem.innerText);
+    console.log("BodyTextContent: ", bodyElem.textContent);
+    console.log("BodyHTML: ", bodyElem.innerHTML);
+
+</script>
