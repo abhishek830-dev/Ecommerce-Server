@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppendChild example</title>
+    <style>
+        .list-item {
+            color: green;
+            padding: '12px';
+            /* background-color: rgb(59, 60, 59); */
+            /* text-transform: lowercase; */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>My Products</h1>
+    <ul id="product-list"></ul>
+</body>
+
+</html>
+<script>
+    const productListContainer = document.getElementById("product-list");
+
+    const products = [
+        "Vidhya Skill School",
+        "Abhishek Garg",
+        "Almas Chamadiya",
+        "ANKIT RAJPUT",
+        "Ashitosh Vidhate",
+        "Aviral Jain",
+        "Ayush Gupta",
+        "Deepanshu Garg",
+        "Pinky Thawani",
+        "Prakash",
+        "Pranav Khare",
+        "Rakshit Dalal",
+        "Shivani Vishwakarma",
+        "Shruti Prajapati",
+        "vikas vanve"
+    ];
+
+    const textCapitalise = (text) => {
+        const splittedText = text.split(" ");
+        let result = "";
+
+        for (let i = 0; i < splittedText.length; i++) {
+            const word = splittedText[i];
+            const capitalizedWord =
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+
+            result += capitalizedWord + " ";
+        }
+
+        return result.trim();
+    };
+
+    for (let i = 0; i < products.length; i++) {
+        const currentProduct = textCapitalise(products[i]);
+
+
+
+        const listElem = document.createElement("li");
+        listElem.textContent = currentProduct;
+        listElem.classList.add("list-item");
+        productListContainer.appendChild(listElem)
+
+    }
+</script>

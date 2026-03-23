@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .list-item {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Products List</h1>
+    <ul id="product-list"></ul>
+</body>
+
+</html>
+<script>
+    const productListElem = document.getElementById("product-list");
+    productListElem.append("Mango");
+    productListElem.append("Orange");
+    productListElem.append("Grapes");
+
+    // create Papaya element
+    const papayaElem = document.createElement("li");
+    papayaElem.textContent = "Papaya";
+    papayaElem.classList.add("list-item")
+    productListElem.append(papayaElem)
+
+
+    const kiwiElem = document.createElement("li");
+    kiwiElem.textContent = "Kiwi";
+    kiwiElem.classList.add("list-item")
+    productListElem.append(kiwiElem)
+
+</script>

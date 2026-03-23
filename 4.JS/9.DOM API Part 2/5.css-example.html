@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #para {
+            color: red;
+            background-color: green;
+        }
+
+        .paraCls {
+            font-size: 100px;
+        }
+
+        .paraCls2 {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<p id="para">This is a Para</p>
+
+<body>
+
+</body>
+
+</html>
+
+<script>
+    const paraElem = document.getElementById("para");
+    paraElem.style.padding = '12px';
+    paraElem.style.color = "white";
+    paraElem.style.backgroundColor = "grey";
+
+    // add class dynamically
+    paraElem.classList.add("paraCls");
+    paraElem.classList.add("paraCls2")
+</script>
