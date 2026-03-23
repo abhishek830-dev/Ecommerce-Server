@@ -5,10 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greetings from JS</title>
+    <style>
+        div.first>h1 {
+            color: red;
+        }
+    </style>
 </head>
 
 <body>
-    <div>
+    <div class="first">
         <h1>Welcome Pinki to the classes</h1>
         <h1>Welcome Pinki to the classes</h1>
         <h1>Welcome Pinki to the classes</h1>
@@ -33,7 +38,7 @@
 
 
 
-    const h1Elems = document.querySelectorAll("div h1");
+    const h1Elems = document.querySelectorAll("div.box > h1");
     console.log(h1Elems);
 
     for (let i = 0; i < h1Elems.length; i++) {
