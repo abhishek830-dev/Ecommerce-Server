@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Elements with ClassName</title>
+</head>
+
+<body>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+    <div class="box"></div>
+</body>
+
+</html>
+<script>
+    const boxElems = document.getElementsByClassName("box");
+    console.log("BoxElems: ", boxElems);
+    if (boxElems.length > 0) {
+        for (let i = 0; i < boxElems.length; i++) {
+            boxElems[i].textContent = `Hi i am box ${i}`
+            boxElems[i].style.padding = "12px";
+            boxElems[i].style.marginBottom = "12px";
+            boxElems[i].style.backgroundColor = "green";
+        }
+    }
+</script>
