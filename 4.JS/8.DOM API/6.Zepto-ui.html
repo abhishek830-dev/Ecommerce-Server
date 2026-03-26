@@ -714,17 +714,19 @@
 
         // Primary header container
         const primaryHeaderContainer = document.createElement("div");
+        primaryHeaderContainer.classList.add("primary-container")
 
         // Set an image inside the box
         const productImgElem = document.createElement("img");
         productImgElem.src = currentProduct.image;
         productImgElem.classList.add("box-item-img")
-        primaryHeaderContainer.appendChild(productImgElem)
+        primaryHeaderContainer.appendChild(productImgElem);
+        parentBoxElem.appendChild(primaryHeaderContainer)
 
         // Secondary body container
         const secondaryHeaderContainer = document.createElement("div");
 
         // Update data into list
-        productListContainer.appendChild(primaryHeaderContainer);
+        productListContainer.appendChild(parentBoxElem);
     }
 </script>
