@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Factorial Calculator</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            color: red;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Factorial Calculator</h1>
+
+        <input type="text" id="numberInput" placeholder="Enter a number">
+
+        <button onclick="validateAndCalculate()">Validate & Calculate</button>
+
+        <div class="message" id="message"></div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function validateAndCalculate() {
+            const input = document.getElementById("numberInput").value.trim();
+            const message = document.getElementById("message");
+            const result = document.getElementById("result");
+
+            message.textContent = "";
+            result.textContent = "";
+
+            // Validate input
+            if (input === "" || isNaN(input) || input < 0 || !Number.isInteger(Number(input))) {
+                message.textContent = "Please enter a valid input number (non-negative integer).";
+                return;
+            }
+
+            const num = Number(input);
+
+            // Factorial calculation
+            let factorial = 1;
+
+            for (let i = 1; i <= num; i++) {
+                factorial *= i;
+            }
+
+            // Display result
+            result.textContent = `Factorial of ${num} is ${factorial}`;
+        }
+    </script>
+
+</body>
+
+</html>
