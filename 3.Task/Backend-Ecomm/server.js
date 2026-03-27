@@ -2,242 +2,41 @@ const fastify = require("fastify")({ logger: true });
 
 const swagger = require("@fastify/swagger");
 const swaggerUI = require("@fastify/swagger-ui");
-const fs = require("fs");
-const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "products.json");
+const {
+  initializeDatabase,
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getCategories,
+  getProductsByCategory,
+  getStatistics,
+} = require("./db");
 
-/* -----------------------------
-   IN-MEMORY DATABASE
-------------------------------*/
-
-let products = [];
-
-const categories = [
-  "Electronics",
-  "Clothing",
-  "Books",
-  "Sports",
-  "Home",
-  "Beauty",
-  "Toys",
-];
-
-// Seeded PRNG for deterministic product generation
-function mulberry32(a) {
-  return function () {
-    var t = (a += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function generateProducts(count = 220, seed = 12345) {
-  const rnd = mulberry32(seed);
-
-  const catalog = {
-    Electronics: [
-      {
-        title: "Smartphone",
-        models: ["Galaxy S21", "iPhone 12", "Pixel 5", "OnePlus 9"],
-        brands: ["Samsung", "Apple", "Google", "OnePlus"],
-        priceRange: [199, 1199],
-      },
-      {
-        title: "Laptop",
-        models: ["XPS 13", "MacBook Air", "ThinkPad X1", "ZenBook 14"],
-        brands: ["Dell", "Apple", "Lenovo", "Asus"],
-        priceRange: [499, 2499],
-      },
-      {
-        title: "Wireless Headphones",
-        models: ["WH-1000XM4", "AirPods Pro", "QC35 II", "Buds Pro"],
-        brands: ["Sony", "Apple", "Bose", "Samsung"],
-        priceRange: [49, 399],
-      },
-      {
-        title: "Smartwatch",
-        models: ["Galaxy Watch 4", "Watch Series 6", "Pixel Watch"],
-        brands: ["Samsung", "Apple", "Google"],
-        priceRange: [99, 799],
-      },
-      {
-        title: "4K TV",
-        models: ["Bravia X90J", "QLED Q80T", "OLED CX"],
-        brands: ["Sony", "Samsung", "LG"],
-        priceRange: [299, 3999],
-      },
-    ],
-    Clothing: [
-      {
-        title: "T-Shirt",
-        models: ["Classic Tee", "V-Neck Tee", "Polo"],
-        brands: ["Levi's", "H&M", "Uniqlo", "Nike"],
-        priceRange: [5, 79],
-      },
-      {
-        title: "Jeans",
-        models: ["Slim Fit", "Straight Leg", "Bootcut"],
-        brands: ["Levi's", "Wrangler", "Lee"],
-        priceRange: [19, 199],
-      },
-      {
-        title: "Sneakers",
-        models: ["Air Max", "Ultraboost", "Chuck Taylor"],
-        brands: ["Nike", "Adidas", "Converse"],
-        priceRange: [29, 299],
-      },
-    ],
-    Books: [
-      {
-        title: "Fiction Book",
-        models: ["The Last Kingdom", "Midnight Library", "The Silent Patient"],
-        brands: ["Penguin", "HarperCollins", "Random House"],
-        priceRange: [4, 35],
-      },
-      {
-        title: "Non-Fiction",
-        models: ["Sapiens", "Atomic Habits", "Educated"],
-        brands: ["Penguin", "HarperCollins", "W.W. Norton"],
-        priceRange: [6, 45],
-      },
-    ],
-    Sports: [
-      {
-        title: "Running Shoes",
-        models: ["ZoomX", "Gel-Nimbus", "Fresh Foam"],
-        brands: ["Nike", "ASICS", "New Balance"],
-        priceRange: [29, 249],
-      },
-      {
-        title: "Yoga Mat",
-        models: ["ProGrip", "EcoMat"],
-        brands: ["Lululemon", "Manduka", "Decathlon"],
-        priceRange: [9, 129],
-      },
-    ],
-    Home: [
-      {
-        title: "Blender",
-        models: ["ProBlend", "SmoothieX"],
-        brands: ["Philips", "KitchenAid", "Ninja"],
-        priceRange: [19, 399],
-      },
-      {
-        title: "Vacuum Cleaner",
-        models: ["Cyclone 3000", "PowerSweep"],
-        brands: ["Dyson", "Hoover", "Shark"],
-        priceRange: [49, 599],
-      },
-    ],
-    Beauty: [
-      {
-        title: "Moisturizer",
-        models: ["HydraBoost", "Daily Cream"],
-        brands: ["Neutrogena", "Olay", "Cetaphil"],
-        priceRange: [4, 79],
-      },
-      {
-        title: "Lipstick",
-        models: ["Matte", "Satin"],
-        brands: ["Maybelline", "MAC", "L'Oreal"],
-        priceRange: [3, 45],
-      },
-    ],
-    Toys: [
-      {
-        title: "Building Blocks",
-        models: ["Classic Bricks", "Mega Blocks"],
-        brands: ["LEGO", "Mega Bloks", "Hasbro"],
-        priceRange: [9, 199],
-      },
-      {
-        title: "Action Figure",
-        models: ["Hero Series", "Galaxy Fighter"],
-        brands: ["Hasbro", "Mattel"],
-        priceRange: [5, 79],
-      },
-    ],
-  };
-
-  let id = 1;
-
-  const categoryKeys = Object.keys(catalog);
-
-  for (let i = 0; i < count; i++) {
-    const cat = categoryKeys[Math.floor(rnd() * categoryKeys.length)];
-    const items = catalog[cat];
-    const chosen = items[Math.floor(rnd() * items.length)];
-
-    const brand = chosen.brands[Math.floor(rnd() * chosen.brands.length)];
-    const model = chosen.models[Math.floor(rnd() * chosen.models.length)];
-
-    const title = `${brand} ${model} ${chosen.title}`;
-
-    const priceMin = chosen.priceRange[0];
-    const priceMax = chosen.priceRange[1];
-    const price = Number((priceMin + rnd() * (priceMax - priceMin)).toFixed(2));
-
-    const rating = Number(Math.max(1, rnd() * 4 + 1).toFixed(1));
-    const stock = Math.floor(rnd() * 500);
-
-    const description = `Buy the ${title} from ${brand}. ${chosen.title} engineered for quality and value. Ideal for ${cat.toLowerCase()} needs.`;
-
-    products.push({
-      id: id,
-      title,
-      description,
-      price,
-      category: cat,
-      rating,
-      stock,
-      brand,
-      createdAt: new Date(
-        Date.now() - Math.floor(rnd() * 1000 * 60 * 60 * 24 * 365),
-      ),
-    });
-
-    id += 1;
-  }
-}
-
-async function saveProductsToFile() {
-  try {
-    await fs.promises.writeFile(
-      DATA_FILE,
-      JSON.stringify(products, null, 2),
-      "utf8",
-    );
-  } catch (err) {
-    fastify.log.error("Failed to save products to file:", err);
-  }
-}
-
-async function loadProductsFromFile() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = await fs.promises.readFile(DATA_FILE, "utf8");
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        products = parsed.map((p) => ({
-          ...p,
-          createdAt: new Date(p.createdAt),
-        }));
-        return true;
-      }
-    }
-  } catch (err) {
-    fastify.log.error("Failed to load products from file:", err);
-  }
-  return false;
-}
-
-/* -----------------------------
-   PRODUCT SCHEMA
-------------------------------*/
+/* ---------------------------------
+   PRODUCT SCHEMA FOR SWAGGER
+----------------------------------*/
 
 const productSchema = {
+  type: "object",
+  properties: {
+    id: { type: "number", description: "Product ID" },
+    title: { type: "string", description: "Product name/title" },
+    description: { type: "string", description: "Product description" },
+    price: { type: "number", description: "Product price" },
+    category: { type: "string", description: "Product category" },
+    rating: { type: "number", description: "Product rating (1-5)" },
+    stock: { type: "number", description: "Available stock" },
+    brand: { type: "string", description: "Brand name" },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+  required: ["title", "description", "price", "category", "brand"],
+};
+
+const productRequestSchema = {
   type: "object",
   properties: {
     title: { type: "string" },
@@ -248,20 +47,69 @@ const productSchema = {
     stock: { type: "number" },
     brand: { type: "string" },
   },
+  required: ["title", "description", "price", "category", "brand"],
 };
 
-/* -----------------------------
-   REGISTER SWAGGER
-------------------------------*/
+/* ---------------------------------
+   REGISTER SWAGGER PLUGINS
+----------------------------------*/
 
 async function registerPlugins() {
   await fastify.register(swagger, {
     openapi: {
       info: {
         title: "Ecommerce Product API",
-        description: "Amazon-like CRUD API with search & filters",
+        description:
+          "Amazon-like CRUD API with SQLite database, search, filters, and category-wise organization",
         version: "1.0.0",
+        contact: {
+          name: "API Support",
+        },
       },
+      tags: [
+        {
+          name: "Products",
+          description: "General product operations",
+        },
+        {
+          name: "Products - Electronics",
+          description: "Electronics category products",
+        },
+        {
+          name: "Products - Clothing",
+          description: "Clothing category products",
+        },
+        {
+          name: "Products - Books",
+          description: "Books category products",
+        },
+        {
+          name: "Products - Sports",
+          description: "Sports category products",
+        },
+        {
+          name: "Products - Home",
+          description: "Home & Kitchen category products",
+        },
+        {
+          name: "Products - Beauty",
+          description: "Beauty & Personal Care category products",
+        },
+        {
+          name: "Products - Toys",
+          description: "Toys & Games category products",
+        },
+        {
+          name: "Statistics",
+          description: "API statistics and analytics",
+        },
+      ],
+      servers: [
+        {
+          url: "http://localhost:3001",
+          description: "Development server",
+        },
+      ],
     },
   });
 
@@ -270,85 +118,120 @@ async function registerPlugins() {
   });
 }
 
-/* -----------------------------
-   ROUTES
-------------------------------*/
+/* ---------------------------------
+   ROUTE HANDLERS
+----------------------------------*/
 
 function registerRoutes() {
+  /**
+   * GET /products - Get all products with filters, search, and pagination
+   */
   fastify.get(
     "/products",
     {
       schema: {
         tags: ["Products"],
-        summary: "Get all products",
+        summary: "Get all products with filters",
+        description:
+          "Retrieve products with pagination, filtering by category/price/rating, and search functionality",
         querystring: {
           type: "object",
           properties: {
-            page: { type: "number" },
-            limit: { type: "number" },
-            category: { type: "string" },
-            minPrice: { type: "number" },
-            maxPrice: { type: "number" },
-            rating: { type: "number" },
-            search: { type: "string" },
+            page: { type: "number", default: 1, description: "Page number" },
+            limit: {
+              type: "number",
+              default: 10,
+              description: "Items per page",
+            },
+            category: { type: "string", description: "Filter by category" },
+            minPrice: { type: "number", description: "Minimum price filter" },
+            maxPrice: { type: "number", description: "Maximum price filter" },
+            rating: {
+              type: "number",
+              description: "Minimum rating filter (1-5)",
+            },
+            search: {
+              type: "string",
+              description: "Search in title and description",
+            },
+            sortBy: {
+              type: "string",
+              description:
+                "Sort field (id, title, price, rating, stock, createdAt)",
+              default: "createdAt",
+            },
+            sortOrder: {
+              type: "string",
+              description: "Sort order (ASC or DESC)",
+              default: "DESC",
+            },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              total: { type: "number" },
+              page: { type: "number" },
+              limit: { type: "number" },
+              data: {
+                type: "array",
+                items: productSchema,
+              },
+            },
           },
         },
       },
     },
     async (req) => {
-      let {
-        page = 1,
-        limit = 10,
-        category,
-        minPrice,
-        maxPrice,
-        rating,
-        search,
-      } = req.query;
-
-      page = Number(page);
-      limit = Number(limit);
-
-      let result = [...products];
-
-      if (search) {
-        const keyword = search.toLowerCase();
-        result = result.filter(
-          (p) =>
-            p.title.toLowerCase().includes(keyword) ||
-            p.description.toLowerCase().includes(keyword),
-        );
-      }
-
-      if (category) result = result.filter((p) => p.category === category);
-      if (minPrice) result = result.filter((p) => p.price >= minPrice);
-      if (maxPrice) result = result.filter((p) => p.price <= maxPrice);
-      if (rating) result = result.filter((p) => p.rating >= rating);
-
-      const total = result.length;
-
-      const start = (page - 1) * limit;
-      const end = start + limit;
-
-      return {
-        total,
-        page,
-        limit,
-        data: result.slice(start, end),
-      };
+      const result = getProducts({
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 10,
+        category: req.query.category,
+        minPrice:
+          req.query.minPrice !== undefined ? Number(req.query.minPrice) : null,
+        maxPrice:
+          req.query.maxPrice !== undefined ? Number(req.query.maxPrice) : null,
+        rating:
+          req.query.rating !== undefined ? Number(req.query.rating) : null,
+        search: req.query.search,
+        sortBy: req.query.sortBy || "createdAt",
+        sortOrder: req.query.sortOrder || "DESC",
+      });
+      return result;
     },
   );
 
+  /**
+   * GET /products/:id - Get single product by ID
+   */
   fastify.get(
     "/products/:id",
     {
       schema: {
         tags: ["Products"],
         summary: "Get product by ID",
+        description: "Retrieve a specific product by its ID",
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "number", description: "Product ID" },
+          },
+          required: ["id"],
+        },
+        response: {
+          200: productSchema,
+          404: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
       },
     },
     async (req, reply) => {
-      const product = products.find((p) => p.id === Number(req.params.id));
+      const product = getProductById(Number(req.params.id));
 
       if (!product) {
         return reply.code(404).send({ message: "Product not found" });
@@ -358,166 +241,422 @@ function registerRoutes() {
     },
   );
 
+  /**
+   * POST /products - Create new product
+   */
   fastify.post(
     "/products",
     {
       schema: {
         tags: ["Products"],
-        summary: "Create product",
-        body: productSchema,
+        summary: "Create new product",
+        description: "Add a new product to the catalog",
+        body: productRequestSchema,
+        response: {
+          201: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+              data: productSchema,
+            },
+          },
+        },
       },
     },
     async (req, reply) => {
-      const newProduct = {
-        id: products.length + 1,
-        ...req.body,
-        createdAt: new Date(),
-      };
-
-      products.push(newProduct);
-
-      await saveProductsToFile();
-
+      const newProduct = createProduct(req.body);
       reply.code(201);
-
       return {
-        message: "Product created",
+        message: "Product created successfully",
         data: newProduct,
       };
     },
   );
 
+  /**
+   * PUT /products/:id - Update product
+   */
   fastify.put(
     "/products/:id",
     {
       schema: {
         tags: ["Products"],
         summary: "Update product",
-        body: productSchema,
+        description: "Update an existing product by ID",
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+          },
+          required: ["id"],
+        },
+        body: productRequestSchema,
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+              data: productSchema,
+            },
+          },
+          404: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
       },
     },
     async (req, reply) => {
-      const id = Number(req.params.id);
+      const updated = updateProduct(Number(req.params.id), req.body);
 
-      const index = products.findIndex((p) => p.id === id);
-
-      if (index === -1) {
+      if (!updated) {
         return reply.code(404).send({ message: "Product not found" });
       }
 
-      products[index] = {
-        ...products[index],
-        ...req.body,
-      };
-
-      await saveProductsToFile();
-
       return {
-        message: "Product updated",
-        data: products[index],
+        message: "Product updated successfully",
+        data: updated,
       };
     },
   );
 
+  /**
+   * DELETE /products/:id - Delete product
+   */
   fastify.delete(
     "/products/:id",
     {
       schema: {
         tags: ["Products"],
         summary: "Delete product",
+        description: "Remove a product from the catalog",
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+          },
+          required: ["id"],
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+              data: productSchema,
+            },
+          },
+          404: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+            },
+          },
+        },
       },
     },
     async (req, reply) => {
-      const id = Number(req.params.id);
+      const deleted = deleteProduct(Number(req.params.id));
 
-      const index = products.findIndex((p) => p.id === id);
-
-      if (index === -1) {
+      if (!deleted) {
         return reply.code(404).send({ message: "Product not found" });
       }
 
-      const deleted = products.splice(index, 1);
-
-      await saveProductsToFile();
-
       return {
-        message: "Product deleted",
-        data: deleted[0],
+        message: "Product deleted successfully",
+        data: deleted,
       };
     },
   );
 
+  /**
+   * GET /categories - Get all available categories
+   */
   fastify.get(
     "/categories",
     {
       schema: {
         tags: ["Products"],
         summary: "Get all categories",
-      },
-    },
-    async () => {
-      return [...new Set(products.map((p) => p.category))];
-    },
-  );
-
-  // Regenerate products (admin/debug). Body: { count?: number, seed?: number, persist?: boolean }
-  fastify.post(
-    "/reload-products",
-    {
-      schema: {
-        tags: ["Products"],
-        summary: "Regenerate products with optional seed and count",
-        body: {
-          type: "object",
-          properties: {
-            count: { type: "number" },
-            seed: { type: "number" },
-            persist: { type: "boolean" },
+        description: "Retrieve list of all available product categories",
+        response: {
+          200: {
+            type: "array",
+            items: { type: "string" },
           },
         },
       },
     },
-    async (req, reply) => {
-      const { count = 220, seed = 12345, persist = true } = req.body || {};
+    async () => {
+      return getCategories();
+    },
+  );
 
-      products = [];
-      generateProducts(Number(count) || 220, Number(seed) || 12345);
+  // ==========================================
+  //   CATEGORY-SPECIFIC ENDPOINTS
+  // ==========================================
 
-      if (persist) await saveProductsToFile();
+  /**
+   * GET /categories/{category}/products - Get products by category
+   */
+  const categoryRoutes = [
+    "Electronics",
+    "Clothing",
+    "Books",
+    "Sports",
+    "Home",
+    "Beauty",
+    "Toys",
+  ];
 
+  for (const category of categoryRoutes) {
+    const tagName = `Products - ${category}`;
+
+    fastify.get(
+      `/categories/${category.toLowerCase()}/products`,
+      {
+        schema: {
+          tags: [tagName],
+          summary: `Get ${category} products`,
+          description: `Retrieve all products in the ${category} category with pagination`,
+          querystring: {
+            type: "object",
+            properties: {
+              page: { type: "number", default: 1 },
+              limit: { type: "number", default: 10 },
+            },
+          },
+          response: {
+            200: {
+              type: "object",
+              properties: {
+                total: { type: "number" },
+                page: { type: "number" },
+                limit: { type: "number" },
+                category: { type: "string" },
+                data: {
+                  type: "array",
+                  items: productSchema,
+                },
+              },
+            },
+          },
+        },
+      },
+      async (req) => {
+        const result = getProductsByCategory(
+          category,
+          Number(req.query.page) || 1,
+          Number(req.query.limit) || 10,
+        );
+        return {
+          ...result,
+          category,
+        };
+      },
+    );
+
+    /**
+     * GET /categories/{category}/stats - Get category statistics
+     */
+    fastify.get(
+      `/categories/${category.toLowerCase()}/stats`,
+      {
+        schema: {
+          tags: [tagName],
+          summary: `Get ${category} statistics`,
+          description: `Retrieve statistics for ${category} products`,
+          response: {
+            200: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                totalProducts: { type: "number" },
+                avgPrice: { type: "number" },
+                minPrice: { type: "number" },
+                maxPrice: { type: "number" },
+                avgRating: { type: "number" },
+                totalStock: { type: "number" },
+              },
+            },
+          },
+        },
+      },
+      async () => {
+        const result = getProducts({ category, limit: 10000 });
+        if (result.data.length === 0) {
+          return {
+            category,
+            totalProducts: 0,
+            avgPrice: 0,
+            minPrice: 0,
+            maxPrice: 0,
+            avgRating: 0,
+            totalStock: 0,
+          };
+        }
+
+        const stats = result.data.reduce(
+          (acc, product) => {
+            acc.avgPrice += product.price;
+            acc.minPrice = Math.min(acc.minPrice, product.price);
+            acc.maxPrice = Math.max(acc.maxPrice, product.price);
+            acc.avgRating += product.rating;
+            acc.totalStock += product.stock;
+            return acc;
+          },
+          {
+            avgPrice: 0,
+            minPrice: Infinity,
+            maxPrice: 0,
+            avgRating: 0,
+            totalStock: 0,
+          },
+        );
+
+        return {
+          category,
+          totalProducts: result.data.length,
+          avgPrice:
+            Math.round((stats.avgPrice / result.data.length) * 100) / 100,
+          minPrice: stats.minPrice,
+          maxPrice: stats.maxPrice,
+          avgRating:
+            Math.round((stats.avgRating / result.data.length) * 100) / 100,
+          totalStock: stats.totalStock,
+        };
+      },
+    );
+
+    /**
+     * POST /categories/{category}/products - Create product in category
+     */
+    fastify.post(
+      `/categories/${category.toLowerCase()}/products`,
+      {
+        schema: {
+          tags: [tagName],
+          summary: `Create ${category} product`,
+          description: `Add a new product to the ${category} category`,
+          body: productRequestSchema,
+          response: {
+            201: {
+              type: "object",
+              properties: {
+                message: { type: "string" },
+                data: productSchema,
+              },
+            },
+          },
+        },
+      },
+      async (req, reply) => {
+        const newProduct = createProduct({
+          ...req.body,
+          category,
+        });
+        reply.code(201);
+        return {
+          message: `${category} product created successfully`,
+          data: newProduct,
+        };
+      },
+    );
+  }
+
+  /**
+   * GET /statistics - Get overall API statistics
+   */
+  fastify.get(
+    "/statistics",
+    {
+      schema: {
+        tags: ["Statistics"],
+        summary: "Get API statistics",
+        description:
+          "Retrieve overall statistics about all products in the database",
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              totalProducts: { type: "number" },
+              totalCategories: { type: "number" },
+              totalBrands: { type: "number" },
+              avgPrice: { type: "number" },
+              minPrice: { type: "number" },
+              maxPrice: { type: "number" },
+              avgRating: { type: "number" },
+              totalStock: { type: "number" },
+            },
+          },
+        },
+      },
+    },
+    async () => {
+      return getStatistics();
+    },
+  );
+
+  /**
+   * GET /health - Health check endpoint
+   */
+  fastify.get(
+    "/health",
+    {
+      schema: {
+        tags: ["Statistics"],
+        summary: "Health check",
+        description: "Check if the API is running",
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              status: { type: "string" },
+              timestamp: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    async () => {
       return {
-        message: "Products regenerated",
-        total: products.length,
+        status: "ok",
+        timestamp: new Date().toISOString(),
       };
     },
   );
 }
 
-/* -----------------------------
-   START SERVER
-------------------------------*/
+/* ---------------------------------
+   SERVER INITIALIZATION
+----------------------------------*/
 
 const start = async () => {
   try {
-    // Load persisted products if available, otherwise generate and persist
-    const loaded = await loadProductsFromFile();
-    if (!loaded) {
-      generateProducts();
-      await saveProductsToFile();
-      fastify.log.info(
-        `Generated ${products.length} products and saved to ${DATA_FILE}`,
-      );
-    } else {
-      fastify.log.info(`Loaded ${products.length} products from ${DATA_FILE}`);
-    }
+    // Initialize database and create tables
+    initializeDatabase();
+    fastify.log.info("✓ Database initialized");
 
+    // Register plugins
     await registerPlugins();
+    fastify.log.info("✓ Swagger documentation registered");
+
+    // Register routes
     registerRoutes();
+    fastify.log.info("✓ Routes registered");
 
-    await fastify.listen({ port: 3001 });
+    // Start server
+    await fastify.listen({ port: 3001, host: "0.0.0.0" });
 
-    console.log("Server running http://localhost:3001");
-    console.log("Swagger docs http://localhost:3001/docs");
+    console.log("\n========================================");
+    console.log("✨ Server running successfully!");
+    console.log("========================================");
+    console.log("API:      http://localhost:3001");
+    console.log("Docs:     http://localhost:3001/docs");
+    console.log("Health:   http://localhost:3001/health");
+    console.log("Stats:    http://localhost:3001/statistics");
+    console.log("========================================\n");
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

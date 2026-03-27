@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anagram</title>
+</head>
+
+<body>
+
+    <div class="box">
+        <div class="form-element">
+            <p>First word</p>
+            <input type="text" id="firstWord" placeholder="Enter first word">
+        </div>
+        <div class="form-element">
+            <p>Second word</p>
+            <input type="text" id="secondWord" placeholder="Enter second word">
+        </div>
+
+        <div class="form-element">
+            <button id="validateBtn">Validate</button>
+        </div>
+
+        <div class="form-element">
+            <p id="resultMsg"></p>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+<script>
+
+    const firstWordElem = document.getElementById("firstWord");
+    const secondWordElem = document.getElementById("secondWord");
+    const validateBtnElem = document.getElementById("validateBtn");
+    const resultMsgElem = document.getElementById("resultMsg");
+
+
+    const isAnagram = (str1, str2) => {
+
+
+        if (str1.length !== str2.length) {
+            return false;
+        }
+
+        if (str1 === str2) {
+            return true;
+        }
+
+
+        const str1Arr = str1.toLowerCase().split("");
+        const str2Arr = str2.toLowerCase().split("");
+
+        for (let i = 0; i < str1Arr.length; i++) {
+            const firstChar = str1Arr[i];
+
+            for (let ii = 0; ii < str2Arr.length; ii++) {
+                const secondChar = str2Arr[ii];
+
+                if (firstChar === secondChar) {
+                    str2Arr.splice(ii, 1);
+                    break;
+                }
+            }
+        }
+
+        if (str2Arr.length !== 0) {
+            return false
+        }
+
+        return true;
+
+    }
+
+
+    validateBtnElem.addEventListener("click", () => {
+        resultMsgElem.textContent = "";
+
+        console.log("Validate button is clicked")
+        const firstWordVal = firstWordElem.value;
+        const secondWordVal = secondWordElem.value;
+
+
+        console.log({ firstWordVal, secondWordVal })
+
+        if (firstWordVal === "" || secondWordVal === "") {
+            resultMsgElem.textContent = "Please provide both values";
+            return;
+        }
+
+        if (firstWordVal.length !== secondWordVal.length) {
+            resultMsgElem.textContent = "Not an anagram";
+            return;
+
+        }
+
+        const isAnagramResult = isAnagram(firstWordVal, secondWordVal);
+
+        if (isAnagramResult) {
+            resultMsgElem.textContent = "It is an anagram";
+
+        } else {
+            resultMsgElem.textContent = "Not an anagram";
+
+        }
+
+    })
+
+
+</script>

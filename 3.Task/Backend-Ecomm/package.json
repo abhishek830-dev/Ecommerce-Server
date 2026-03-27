@@ -1,11 +1,13 @@
 {
-  "name": "Backend-Ecomm",
+  "name": "backend-ecommerce",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"nodemon server.js"
+    "dev": "nodemon server.js",
+    "seed": "node seed.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +15,7 @@
   "dependencies": {
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.5",
+    "better-sqlite3": "^9.2.2",
     "fastify": "^5.8.2",
     "nodemon": "^3.1.14"
   }
