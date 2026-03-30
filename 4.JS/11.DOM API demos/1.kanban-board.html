@@ -118,3 +118,15 @@
 </body>
 
 </html>
+
+
+<script>
+    const product = basket.find((item) => item.name === currentProduct.name);
+    if (!product) {
+        basket.push({ ...currentProduct, quantity: 1 });
+        return;
+    }
+
+    product.quantity++;
+
+</script>
