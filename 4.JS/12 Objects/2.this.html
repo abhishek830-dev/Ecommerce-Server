@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
+<script>
+    console.log("this: ", this);
+    console.log("window", window)
+</script>
+
+<script>
+    const person = {
+        name: "John",
+        age: 30,
+    };
+
+    console.log(person);
+</script>
+
+<script>
+    const product = {
+        Brand: "tata",
+        Model: "Curve",
+        Year: "2025",
+        insurance: {
+            Provider: "ICICI",
+            PolicyNumber: "1234567890",
+            ExpiryDate: "2025-12-31",
+            status: function () {
+                if (this.ExpiryDate > new Date().toISOString().split('T')[0]) {
+                    return "Active";
+                } else {
+                    return "Inactive";
+                }
+            }
+
+        }
+    };
+</script>
