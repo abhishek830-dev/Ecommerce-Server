@@ -1,21 +1,15 @@
-const Database = require("better-sqlite3");
+const { createClient } = require("@libsql/client");
 const path = require("path");
-const fs = require("fs");
 
-const DB_PATH = path.join(__dirname, "ecommerce.db");
-
-// Initialize database connection
-const db = new Database(DB_PATH);
-
-// Enable foreign keys
-db.pragma("foreign_keys = ON");
+const db = createClient({
+  url: "file:" + path.join(__dirname, "ecommerce.db"),
+});
 
 /**
- * Initialize database schema and tables
+ * Initialize database
  */
-function initializeDatabase() {
-  const schema = `
-    -- Products table
+async function initializeDatabase() {
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
@@ -25,219 +19,181 @@ function initializeDatabase() {
       rating REAL DEFAULT 0,
       stock INTEGER DEFAULT 0,
       brand TEXT NOT NULL,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- Categories table
-    CREATE TABLE IF NOT EXISTS categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE NOT NULL,
-      description TEXT,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    -- Create index on category for faster queries
-    CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-    CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
-    CREATE INDEX IF NOT EXISTS idx_products_title ON products(title);
-  `;
-
-  const statements = schema.split(";").filter((s) => s.trim());
-
-  for (const statement of statements) {
-    if (statement.trim()) {
-      db.exec(statement);
-    }
-  }
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
 /**
- * Get all products with filtering, sorting, and pagination
+ * Get products with filters
  */
-function getProducts(opts = {}) {
+async function getProducts(opts = {}) {
   const {
     page = 1,
     limit = 10,
-    category = null,
-    minPrice = null,
-    maxPrice = null,
-    rating = null,
-    search = null,
+    category,
+    minPrice,
+    maxPrice,
+    rating,
+    search,
     sortBy = "createdAt",
     sortOrder = "DESC",
   } = opts;
 
   let query = "SELECT * FROM products WHERE 1=1";
-  const params = [];
+  let params = [];
 
   if (category) {
     query += " AND category = ?";
     params.push(category);
   }
 
-  if (minPrice !== null) {
+  if (minPrice != null) {
     query += " AND price >= ?";
     params.push(minPrice);
   }
 
-  if (maxPrice !== null) {
+  if (maxPrice != null) {
     query += " AND price <= ?";
     params.push(maxPrice);
   }
 
-  if (rating !== null) {
+  if (rating != null) {
     query += " AND rating >= ?";
     params.push(rating);
   }
 
   if (search) {
     query += " AND (title LIKE ? OR description LIKE ?)";
-    const searchTerm = `%${search}%`;
-    params.push(searchTerm, searchTerm);
+    const s = `%${search}%`;
+    params.push(s, s);
   }
 
-  // Get total count
-  const countQuery = `SELECT COUNT(*) as count FROM products WHERE 1=1${params.length ? ` AND ${query.split("WHERE 1=1")[1]}` : ""}`;
-  const countStmt = db.prepare(countQuery);
-  const { count: total } = countStmt.get(...params);
+  // Count
+  const countRes = await db.execute({
+    sql: query.replace("SELECT *", "SELECT COUNT(*) as total"),
+    args: params,
+  });
 
-  // Add sorting
-  const validSortFields = [
-    "id",
-    "title",
-    "price",
-    "rating",
-    "stock",
-    "createdAt",
-  ];
-  const field = validSortFields.includes(sortBy) ? sortBy : "createdAt";
-  const order = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
-  query += ` ORDER BY ${field} ${order}`;
+  const total = countRes.rows[0].total;
 
-  // Add pagination
-  const offset = (page - 1) * limit;
-  query += ` LIMIT ? OFFSET ?`;
-  params.push(limit, offset);
+  // Sorting
+  const validSort = ["id", "title", "price", "rating", "stock", "createdAt"];
+  const field = validSort.includes(sortBy) ? sortBy : "createdAt";
+  const order = sortOrder === "ASC" ? "ASC" : "DESC";
 
-  const stmt = db.prepare(query);
-  const data = stmt.all(...params);
+  query += ` ORDER BY ${field} ${order} LIMIT ? OFFSET ?`;
+  params.push(limit, (page - 1) * limit);
+
+  const res = await db.execute({ sql: query, args: params });
 
   return {
     total,
     page,
     limit,
-    data,
+    data: res.rows,
   };
 }
 
 /**
  * Get product by ID
  */
-function getProductById(id) {
-  const stmt = db.prepare("SELECT * FROM products WHERE id = ?");
-  return stmt.get(id);
+async function getProductById(id) {
+  const res = await db.execute({
+    sql: "SELECT * FROM products WHERE id = ?",
+    args: [id],
+  });
+
+  return res.rows[0] || null;
 }
 
 /**
- * Create new product
+ * Create product
  */
-function createProduct(productData) {
-  const { title, description, price, category, rating, stock, brand } =
-    productData;
-
-  const stmt = db.prepare(`
-    INSERT INTO products (title, description, price, category, rating, stock, brand, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-  `);
-
-  const result = stmt.run(
+async function createProduct(data) {
+  const {
     title,
     description,
     price,
     category,
-    rating || 0,
-    stock || 0,
+    rating = 0,
+    stock = 0,
     brand,
-  );
+  } = data;
 
-  return {
-    id: result.lastInsertRowid,
-    ...productData,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const res = await db.execute({
+    sql: `
+      INSERT INTO products 
+      (title, description, price, category, rating, stock, brand, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `,
+    args: [title, description, price, category, rating, stock, brand],
+  });
+
+  return { id: res.lastInsertRowid, ...data };
 }
 
 /**
  * Update product
  */
-function updateProduct(id, productData) {
-  const existingProduct = getProductById(id);
-  if (!existingProduct) return null;
+async function updateProduct(id, data) {
+  const existing = await getProductById(id);
+  if (!existing) return null;
 
-  const updatedData = {
-    ...existingProduct,
-    ...productData,
-    updatedAt: new Date(),
-  };
+  const updated = { ...existing, ...data };
 
-  const { title, description, price, category, rating, stock, brand } =
-    updatedData;
+  await db.execute({
+    sql: `
+      UPDATE products SET 
+      title=?, description=?, price=?, category=?, rating=?, stock=?, brand=?, updatedAt=CURRENT_TIMESTAMP
+      WHERE id=?
+    `,
+    args: [
+      updated.title,
+      updated.description,
+      updated.price,
+      updated.category,
+      updated.rating,
+      updated.stock,
+      updated.brand,
+      id,
+    ],
+  });
 
-  const stmt = db.prepare(`
-    UPDATE products 
-    SET title = ?, description = ?, price = ?, category = ?, rating = ?, stock = ?, brand = ?, updatedAt = CURRENT_TIMESTAMP
-    WHERE id = ?
-  `);
-
-  stmt.run(title, description, price, category, rating, stock, brand, id);
-
-  return updatedData;
+  return updated;
 }
 
 /**
  * Delete product
  */
-function deleteProduct(id) {
-  const product = getProductById(id);
+async function deleteProduct(id) {
+  const product = await getProductById(id);
   if (!product) return null;
 
-  const stmt = db.prepare("DELETE FROM products WHERE id = ?");
-  stmt.run(id);
+  await db.execute({
+    sql: "DELETE FROM products WHERE id=?",
+    args: [id],
+  });
 
   return product;
 }
 
 /**
- * Get all categories
+ * Get categories
  */
-function getCategories() {
-  const stmt = db.prepare(
+async function getCategories() {
+  const res = await db.execute(
     "SELECT DISTINCT category FROM products ORDER BY category",
   );
-  return stmt.all().map((row) => row.category);
+  return res.rows.map((r) => r.category);
 }
 
 /**
- * Get products by category with pagination
+ * Statistics
  */
-function getProductsByCategory(category, page = 1, limit = 10) {
-  const opts = {
-    category,
-    page,
-    limit,
-  };
-  return getProducts(opts);
-}
-
-/**
- * Get product statistics
- */
-function getStatistics() {
-  const stats = db
-    .prepare(
-      `
+async function getStatistics() {
+  const res = await db.execute(`
     SELECT
       COUNT(*) as totalProducts,
       COUNT(DISTINCT category) as totalCategories,
@@ -248,47 +204,51 @@ function getStatistics() {
       AVG(rating) as avgRating,
       SUM(stock) as totalStock
     FROM products
-  `,
-    )
-    .get();
-
-  return stats;
-}
-
-/**
- * Clear all products (useful for re-seeding)
- */
-function clearProducts() {
-  const stmt = db.prepare("DELETE FROM products");
-  stmt.run();
-}
-
-/**
- * Bulk insert products
- */
-function bulkInsertProducts(products) {
-  const insertStmt = db.prepare(`
-    INSERT INTO products (title, description, price, category, rating, stock, brand, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const transaction = db.transaction((products) => {
-    for (const product of products) {
-      insertStmt.run(
-        product.title,
-        product.description,
-        product.price,
-        product.category,
-        product.rating,
-        product.stock,
-        product.brand,
-        product.createdAt,
-        new Date().toISOString(),
-      );
-    }
-  });
+  return res.rows[0];
+}
 
-  transaction(products);
+/**
+ * Clear products
+ */
+async function clearProducts() {
+  await db.execute("DELETE FROM products");
+}
+
+/**
+ * Bulk insert (transaction)
+ */
+async function bulkInsertProducts(products) {
+  const tx = await db.transaction();
+
+  try {
+    for (const p of products) {
+      await tx.execute({
+        sql: `
+          INSERT INTO products
+          (title, description, price, category, rating, stock, brand, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        args: [
+          p.title,
+          p.description,
+          p.price,
+          p.category,
+          p.rating,
+          p.stock,
+          p.brand,
+          p.createdAt,
+          new Date().toISOString(),
+        ],
+      });
+    }
+
+    await tx.commit();
+  } catch (err) {
+    await tx.rollback();
+    throw err;
+  }
 }
 
 module.exports = {
@@ -300,7 +260,6 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getCategories,
-  getProductsByCategory,
   getStatistics,
   clearProducts,
   bulkInsertProducts,

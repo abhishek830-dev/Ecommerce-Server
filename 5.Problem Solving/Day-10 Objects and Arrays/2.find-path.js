@@ -14,11 +14,48 @@ var obj = {
     k: null,
   },
 };
+
 const findPath = (object, path) => {
   // write logic here
+  const keys = path.split(".");
+  let traversing = { ...object };
+
+  for (let item of keys) {
+    // console.log("Item: ", item);
+
+    if (traversing.hasOwnProperty(item)) {
+      //   console.log("traversing Before: ", traversing, { item });
+      traversing = traversing[item];
+      //   console.log("traversing After: ", traversing, { item });
+    } else {
+      return "Not available";
+    }
+  }
+
+  return traversing;
 };
 
-console.log(findPath(obj, "a.b.c")); // 12
+const findPathV2 = (object, path) => {
+  // write logic here
+  const keys = path.split(".");
+  let traversing = { ...object };
+
+  for (let item of keys) {
+    // console.log("Item: ", item);
+
+    if (traversing.hasOwnProperty(item)) {
+      //   console.log("traversing Before: ", traversing, { item });
+      traversing = traversing[item];
+      //   console.log("traversing After: ", traversing, { item });
+    } else {
+      return "Not available";
+    }
+  }
+
+  return traversing;
+};
+
+console.log(findPath(obj, "a.b.c.k")); // 12
 console.log(findPath(obj, "a.b")); // {c: 12, j: false}
 console.log(findPath(obj, "a.b.d")); // undefined
 console.log(findPath(obj, "a.c")); // undefined

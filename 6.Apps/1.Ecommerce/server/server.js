@@ -264,7 +264,7 @@ function registerRoutes() {
       },
     },
     async (req, reply) => {
-      const newProduct = createProduct(req.body);
+      const newProduct = await createProduct(req.body);
       reply.code(201);
       return {
         message: "Product created successfully",

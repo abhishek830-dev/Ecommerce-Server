@@ -8,34 +8,26 @@ const {
 
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
 
-/**
- * Seed database from products.json
- */
 async function seedDatabase() {
   try {
     console.log("🌱 Starting database seeding...");
 
-    // Initialize database schema
-    initializeDatabase();
+    await initializeDatabase();
     console.log("✓ Database initialized");
 
-    // Check if products.json exists
     if (!fs.existsSync(PRODUCTS_FILE)) {
       console.error("✗ products.json not found!");
       process.exit(1);
     }
 
-    // Read products.json
     const data = fs.readFileSync(PRODUCTS_FILE, "utf8");
     const products = JSON.parse(data);
 
-    console.log(`✓ Loaded ${products.length} products from products.json`);
+    console.log(`✓ Loaded ${products.length} products`);
 
-    // Clear existing products
-    clearProducts();
+    await clearProducts();
     console.log("✓ Cleared existing products");
 
-    // Insert products into database
     const formattedProducts = products.map((p) => ({
       title: p.title,
       description: p.description,
@@ -49,18 +41,18 @@ async function seedDatabase() {
         : new Date().toISOString(),
     }));
 
-    bulkInsertProducts(formattedProducts);
-    console.log(`✓ Inserted ${products.length} products into database`);
+    await bulkInsertProducts(formattedProducts);
 
-    console.log("\n✨ Database seeding completed successfully!");
+    console.log(`✓ Inserted ${products.length} products`);
+    console.log("✨ Database seeding completed successfully!");
+
     process.exit(0);
   } catch (error) {
-    console.error("✗ Seeding failed:", error.message);
+    console.error("✗ Seeding failed:", error);
     process.exit(1);
   }
 }
 
-// Run seeding if executed directly
 if (require.main === module) {
   seedDatabase();
 }
