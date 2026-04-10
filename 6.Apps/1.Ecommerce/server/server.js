@@ -36,6 +36,20 @@ const productSchema = {
   required: ["title", "description", "price", "category", "brand"],
 };
 
+// ✅ FIX: separate schema for PATCH (partial update)
+const productUpdateSchema = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    description: { type: "string" },
+    price: { type: "number" },
+    category: { type: "string" },
+    rating: { type: "number" },
+    stock: { type: "number" },
+    brand: { type: "string" },
+  },
+};
+
 const productRequestSchema = {
   type: "object",
   properties: {
@@ -47,7 +61,16 @@ const productRequestSchema = {
     stock: { type: "number" },
     brand: { type: "string" },
   },
-  required: ["title", "description", "price", "category", "brand"],
+  // required: ["title", "description", "price", "category", "brand"],
+};
+
+/* ---------------------------------
+   HELPERS
+----------------------------------*/
+
+const toNumber = (val, def = null) => {
+  const n = Number(val);
+  return isNaN(n) ? def : n;
 };
 
 /* ---------------------------------
@@ -67,49 +90,17 @@ async function registerPlugins() {
         },
       },
       tags: [
-        {
-          name: "Products",
-          description: "General product operations",
-        },
-        {
-          name: "Products - Electronics",
-          description: "Electronics category products",
-        },
-        {
-          name: "Products - Clothing",
-          description: "Clothing category products",
-        },
-        {
-          name: "Products - Books",
-          description: "Books category products",
-        },
-        {
-          name: "Products - Sports",
-          description: "Sports category products",
-        },
-        {
-          name: "Products - Home",
-          description: "Home & Kitchen category products",
-        },
-        {
-          name: "Products - Beauty",
-          description: "Beauty & Personal Care category products",
-        },
-        {
-          name: "Products - Toys",
-          description: "Toys & Games category products",
-        },
-        {
-          name: "Statistics",
-          description: "API statistics and analytics",
-        },
+        { name: "Products", description: "General product operations" },
+        { name: "Products - Electronics" },
+        { name: "Products - Clothing" },
+        { name: "Products - Books" },
+        { name: "Products - Sports" },
+        { name: "Products - Home" },
+        { name: "Products - Beauty" },
+        { name: "Products - Toys" },
+        { name: "Statistics" },
       ],
-      servers: [
-        {
-          url: "http://localhost:3001",
-          description: "Development server",
-        },
-      ],
+      servers: [{ url: "http://localhost:3001" }],
     },
   });
 
@@ -124,7 +115,7 @@ async function registerPlugins() {
 
 function registerRoutes() {
   /**
-   * GET /products - Get all products with filters, search, and pagination
+   * GET /products
    */
   fastify.get(
     "/products",
@@ -184,26 +175,22 @@ function registerRoutes() {
       },
     },
     async (req) => {
-      const result = getProducts({
-        page: Number(req.query.page) || 1,
-        limit: Number(req.query.limit) || 10,
+      return getProducts({
+        page: toNumber(req.query.page, 1),
+        limit: toNumber(req.query.limit, 10),
         category: req.query.category,
-        minPrice:
-          req.query.minPrice !== undefined ? Number(req.query.minPrice) : null,
-        maxPrice:
-          req.query.maxPrice !== undefined ? Number(req.query.maxPrice) : null,
-        rating:
-          req.query.rating !== undefined ? Number(req.query.rating) : null,
+        minPrice: toNumber(req.query.minPrice),
+        maxPrice: toNumber(req.query.maxPrice),
+        rating: toNumber(req.query.rating),
         search: req.query.search,
         sortBy: req.query.sortBy || "createdAt",
         sortOrder: req.query.sortOrder || "DESC",
       });
-      return result;
     },
   );
 
   /**
-   * GET /products/:id - Get single product by ID
+   * GET /products/:id
    */
   fastify.get(
     "/products/:id",
@@ -231,18 +218,17 @@ function registerRoutes() {
       },
     },
     async (req, reply) => {
-      const product = getProductById(Number(req.params.id));
+      const product = await getProductById(Number(req.params.id));
 
       if (!product) {
         return reply.code(404).send({ message: "Product not found" });
       }
-
       return product;
     },
   );
 
   /**
-   * POST /products - Create new product
+   * POST /products
    */
   fastify.post(
     "/products",
@@ -274,9 +260,9 @@ function registerRoutes() {
   );
 
   /**
-   * PUT /products/:id - Update product
+   * PATCH /products/:id
    */
-  fastify.put(
+  fastify.patch(
     "/products/:id",
     {
       schema: {
@@ -309,7 +295,8 @@ function registerRoutes() {
       },
     },
     async (req, reply) => {
-      const updated = updateProduct(Number(req.params.id), req.body);
+      const updated = await updateProduct(toNumber(req.params.id), req.body);
+      console.log("Updated_____: ", updated);
 
       if (!updated) {
         return reply.code(404).send({ message: "Product not found" });
@@ -323,7 +310,7 @@ function registerRoutes() {
   );
 
   /**
-   * DELETE /products/:id - Delete product
+   * DELETE /products/:id
    */
   fastify.delete(
     "/products/:id",
@@ -357,7 +344,7 @@ function registerRoutes() {
       },
     },
     async (req, reply) => {
-      const deleted = deleteProduct(Number(req.params.id));
+      const deleted = await deleteProduct(Number(req.params.id));
 
       if (!deleted) {
         return reply.code(404).send({ message: "Product not found" });
@@ -371,7 +358,7 @@ function registerRoutes() {
   );
 
   /**
-   * GET /categories - Get all available categories
+   * GET /categories
    */
   fastify.get(
     "/categories",
@@ -393,12 +380,8 @@ function registerRoutes() {
     },
   );
 
-  // ==========================================
-  //   CATEGORY-SPECIFIC ENDPOINTS
-  // ==========================================
-
   /**
-   * GET /categories/{category}/products - Get products by category
+   * CATEGORY ROUTES
    */
   const categoryRoutes = [
     "Electronics",
@@ -445,11 +428,12 @@ function registerRoutes() {
         },
       },
       async (req) => {
-        const result = getProductsByCategory(
+        const result = await getProductsByCategory(
           category,
-          Number(req.query.page) || 1,
-          Number(req.query.limit) || 10,
+          toNumber(req.query.page, 1),
+          toNumber(req.query.limit, 10),
         );
+
         return {
           ...result,
           category,
@@ -484,7 +468,7 @@ function registerRoutes() {
         },
       },
       async () => {
-        const result = getProducts({ category, limit: 10000 });
+        const result = await getProducts({ category, limit: 10000 });
         if (result.data.length === 0) {
           return {
             category,
@@ -498,12 +482,12 @@ function registerRoutes() {
         }
 
         const stats = result.data.reduce(
-          (acc, product) => {
-            acc.avgPrice += product.price;
-            acc.minPrice = Math.min(acc.minPrice, product.price);
-            acc.maxPrice = Math.max(acc.maxPrice, product.price);
-            acc.avgRating += product.rating;
-            acc.totalStock += product.stock;
+          (acc, p) => {
+            acc.avgPrice += p.price || 0;
+            acc.minPrice = Math.min(acc.minPrice, p.price || 0);
+            acc.maxPrice = Math.max(acc.maxPrice, p.price || 0);
+            acc.avgRating += p.rating || 0;
+            acc.totalStock += p.stock || 0;
             return acc;
           },
           {
@@ -518,20 +502,15 @@ function registerRoutes() {
         return {
           category,
           totalProducts: result.data.length,
-          avgPrice:
-            Math.round((stats.avgPrice / result.data.length) * 100) / 100,
+          avgPrice: +(stats.avgPrice / result.data.length).toFixed(2),
           minPrice: stats.minPrice,
           maxPrice: stats.maxPrice,
-          avgRating:
-            Math.round((stats.avgRating / result.data.length) * 100) / 100,
+          avgRating: +(stats.avgRating / result.data.length).toFixed(2),
           totalStock: stats.totalStock,
         };
       },
     );
 
-    /**
-     * POST /categories/{category}/products - Create product in category
-     */
     fastify.post(
       `/categories/${category.toLowerCase()}/products`,
       {
@@ -552,10 +531,11 @@ function registerRoutes() {
         },
       },
       async (req, reply) => {
-        const newProduct = createProduct({
+        const newProduct = await createProduct({
           ...req.body,
           category,
         });
+
         reply.code(201);
         return {
           message: `${category} product created successfully`,
@@ -634,19 +614,15 @@ function registerRoutes() {
 
 const start = async () => {
   try {
-    // Initialize database and create tables
     initializeDatabase();
     fastify.log.info("✓ Database initialized");
 
-    // Register plugins
     await registerPlugins();
-    fastify.log.info("✓ Swagger documentation registered");
+    fastify.log.info("✓ Swagger registered");
 
-    // Register routes
     registerRoutes();
     fastify.log.info("✓ Routes registered");
 
-    // Start server
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
 
     console.log("\n========================================");

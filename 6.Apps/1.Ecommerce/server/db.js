@@ -141,27 +141,38 @@ async function updateProduct(id, data) {
   const existing = await getProductById(id);
   if (!existing) return null;
 
-  const updated = { ...existing, ...data };
+  const fields = [];
+  const values = [];
+
+  // Build dynamic query
+  for (const key in data) {
+    fields.push(`${key} = ?`);
+    values.push(data[key]);
+  }
+
+  // If no fields provided
+  if (fields.length === 0) {
+    return existing;
+  }
+
+  // Add updatedAt
+  fields.push("updatedAt = CURRENT_TIMESTAMP");
+
+  const sql = `
+    UPDATE products 
+    SET ${fields.join(", ")} 
+    WHERE id = ?
+  `;
+
+  values.push(id);
 
   await db.execute({
-    sql: `
-      UPDATE products SET 
-      title=?, description=?, price=?, category=?, rating=?, stock=?, brand=?, updatedAt=CURRENT_TIMESTAMP
-      WHERE id=?
-    `,
-    args: [
-      updated.title,
-      updated.description,
-      updated.price,
-      updated.category,
-      updated.rating,
-      updated.stock,
-      updated.brand,
-      id,
-    ],
+    sql,
+    args: values,
   });
 
-  return updated;
+  // Return updated record
+  return await getProductById(id);
 }
 
 /**
@@ -187,6 +198,20 @@ async function getCategories() {
     "SELECT DISTINCT category FROM products ORDER BY category",
   );
   return res.rows.map((r) => r.category);
+}
+/**
+ *
+ * @param {*} Get product by category
+ * @param {*} page
+ * @param {*} limit
+ * @returns
+ */
+async function getProductsByCategory(category, page = 1, limit = 10) {
+  return getProducts({
+    category,
+    page,
+    limit,
+  });
 }
 
 /**
@@ -260,6 +285,7 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getCategories,
+  getProductsByCategory,
   getStatistics,
   clearProducts,
   bulkInsertProducts,
