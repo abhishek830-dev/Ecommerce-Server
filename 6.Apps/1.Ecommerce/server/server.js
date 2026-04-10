@@ -1,4 +1,5 @@
 const fastify = require("fastify")({ logger: true });
+const cors = require("@fastify/cors");
 
 const swagger = require("@fastify/swagger");
 const swaggerUI = require("@fastify/swagger-ui");
@@ -78,6 +79,9 @@ const toNumber = (val, def = null) => {
 ----------------------------------*/
 
 async function registerPlugins() {
+  await fastify.register(cors, {
+    origin: "*",
+  });
   await fastify.register(swagger, {
     openapi: {
       info: {
