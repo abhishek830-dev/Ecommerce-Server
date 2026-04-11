@@ -1,6 +1,16 @@
-const fastify = require("fastify")({ logger: true });
-const cors = require("@fastify/cors");
+const fastify = require("fastify")({
+  logger: true,
+  ajv: {
+    customOptions: {
+      coerceTypes: "array", // coerce query string numbers automatically
+      removeAdditional: "all", // strip unknown fields from body silently
+      useDefaults: true, // apply schema defaults automatically
+      allErrors: true, // report all validation errors, not just first
+    },
+  },
+});
 
+const cors = require("@fastify/cors");
 const swagger = require("@fastify/swagger");
 const swaggerUI = require("@fastify/swagger-ui");
 
@@ -17,84 +27,197 @@ const {
 } = require("./db");
 
 /* ---------------------------------
-   PRODUCT SCHEMA FOR SWAGGER
+   SCHEMAS
 ----------------------------------*/
 
 const productSchema = {
   type: "object",
   properties: {
-    id: { type: "number", description: "Product ID" },
-    title: { type: "string", description: "Product name/title" },
-    description: { type: "string", description: "Product description" },
-    price: { type: "number", description: "Product price" },
-    category: { type: "string", description: "Product category" },
-    rating: { type: "number", description: "Product rating (1-5)" },
-    stock: { type: "number", description: "Available stock" },
-    brand: { type: "string", description: "Brand name" },
+    id: { type: "number" },
+    title: { type: "string" },
+    description: { type: "string" },
+    price: { type: "number" },
+    category: { type: "string" },
+    rating: { type: "number" },
+    stock: { type: "number" },
+    brand: { type: "string" },
     createdAt: { type: "string", format: "date-time" },
     updatedAt: { type: "string", format: "date-time" },
   },
-  required: ["title", "description", "price", "category", "brand"],
 };
 
-// ✅ FIX: separate schema for PATCH (partial update)
+// POST body — all core fields required, AJV handles rejection automatically
+const productCreateSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["title", "description", "price", "category", "brand"],
+  properties: {
+    title: { type: "string", minLength: 1, maxLength: 255 },
+    description: { type: "string", minLength: 1 },
+    price: { type: "number", minimum: 0 },
+    category: { type: "string", minLength: 1 },
+    rating: { type: "number", minimum: 1, maximum: 5 },
+    stock: { type: "number", minimum: 0 },
+    brand: { type: "string", minLength: 1, maxLength: 255 },
+  },
+};
+
+// PATCH body — all fields optional, but at least one must be present (enforced via minProperties)
 const productUpdateSchema = {
   type: "object",
+  additionalProperties: false,
+  minProperties: 1,
   properties: {
-    title: { type: "string" },
-    description: { type: "string" },
-    price: { type: "number" },
-    category: { type: "string" },
-    rating: { type: "number" },
-    stock: { type: "number" },
-    brand: { type: "string" },
+    title: { type: "string", minLength: 1, maxLength: 255 },
+    description: { type: "string", minLength: 1 },
+    price: { type: "number", minimum: 0 },
+    category: { type: "string", minLength: 1 },
+    rating: { type: "number", minimum: 1, maximum: 5 },
+    stock: { type: "number", minimum: 0 },
+    brand: { type: "string", minLength: 1, maxLength: 255 },
   },
 };
 
-const productRequestSchema = {
+const paginationQuerySchema = {
   type: "object",
   properties: {
-    title: { type: "string" },
-    description: { type: "string" },
-    price: { type: "number" },
-    category: { type: "string" },
-    rating: { type: "number" },
-    stock: { type: "number" },
-    brand: { type: "string" },
+    page: { type: "number", default: 1, minimum: 1 },
+    limit: { type: "number", default: 10, minimum: 1, maximum: 100 },
   },
-  // required: ["title", "description", "price", "category", "brand"],
+};
+
+const productsQuerySchema = {
+  type: "object",
+  properties: {
+    page: { type: "number", default: 1, minimum: 1 },
+    limit: { type: "number", default: 10, minimum: 1, maximum: 100 },
+    category: { type: "string" },
+    minPrice: { type: "number", minimum: 0 },
+    maxPrice: { type: "number", minimum: 0 },
+    rating: { type: "number", minimum: 1, maximum: 5 },
+    search: { type: "string", maxLength: 200 },
+    sortBy: {
+      type: "string",
+      enum: ["id", "title", "price", "rating", "stock", "createdAt"],
+      default: "createdAt",
+    },
+    sortOrder: {
+      type: "string",
+      enum: ["ASC", "DESC"],
+      default: "DESC",
+    },
+  },
 };
 
 /* ---------------------------------
-   HELPERS
+   STANDARD RESPONSE SHAPES (reused across routes)
 ----------------------------------*/
 
-const toNumber = (val, def = null) => {
-  const n = Number(val);
-  return isNaN(n) ? def : n;
-};
+const errorResponse = (code) => ({
+  [code]: {
+    type: "object",
+    properties: {
+      statusCode: { type: "number" },
+      error: { type: "string" },
+      message: { type: "string" },
+      missingFields: { type: "array", items: { type: "string" } },
+      details: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            field: { type: "string" },
+            issue: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+});
 
 /* ---------------------------------
-   REGISTER SWAGGER PLUGINS
+   GLOBAL ERROR HANDLER
+----------------------------------*/
+
+function registerErrorHandlers() {
+  // Catches: AJV validation errors, thrown errors, anything unhandled
+  fastify.setErrorHandler((error, req, reply) => {
+    const statusCode = error.statusCode || 500;
+
+    // AJV validation errors come with statusCode 400 and error.validation array
+    if (error.validation) {
+      const missingFields = error.validation
+        .filter((v) => v.keyword === "required")
+        .map((v) => v.params.missingProperty);
+
+      const otherErrors = error.validation
+        .filter((v) => v.keyword !== "required")
+        .map((v) => ({
+          field: v.instancePath.replace(/^\//, "") || "unknown",
+          issue: v.message,
+        }));
+
+      const formatFieldList = (fields) => {
+        if (fields.length === 0) return "";
+        if (fields.length === 1) return fields[0];
+        const last = fields[fields.length - 1];
+        const rest = fields.slice(0, -1);
+        return `${rest.join(", ")} & ${last}`;
+      };
+
+      const message =
+        missingFields.length > 0
+          ? `Please provide ${formatFieldList(missingFields)} field${missingFields.length > 1 ? "s" : ""}.`
+          : `Invalid value${otherErrors.length > 1 ? "s" : ""} for: ${formatFieldList(otherErrors.map((e) => e.field))}.`;
+
+      return reply.status(400).send({
+        statusCode: 400,
+        error: "Validation Error",
+        message,
+        ...(missingFields.length > 0 && { missingFields }),
+        ...(otherErrors.length > 0 && { details: otherErrors }),
+      });
+    }
+
+    fastify.log.error(error);
+
+    reply.status(statusCode).send({
+      statusCode,
+      error:
+        statusCode === 500 ? "Internal Server Error" : error.name || "Error",
+      message:
+        statusCode === 500
+          ? "An unexpected error occurred. Please try again later."
+          : error.message,
+    });
+  });
+
+  fastify.setNotFoundHandler((req, reply) => {
+    reply.status(404).send({
+      statusCode: 404,
+      error: "Not Found",
+      message: `Route ${req.method} ${req.url} not found`,
+    });
+  });
+}
+
+/* ---------------------------------
+   REGISTER PLUGINS
 ----------------------------------*/
 
 async function registerPlugins() {
-  await fastify.register(cors, {
-    origin: "*",
-  });
+  await fastify.register(cors, { origin: "*" });
+
   await fastify.register(swagger, {
     openapi: {
       info: {
         title: "Ecommerce Product API",
         description:
-          "Amazon-like CRUD API with SQLite database, search, filters, and category-wise organization",
+          "Amazon-like CRUD API with SQLite, search, filters, and category-wise organization",
         version: "1.0.0",
-        contact: {
-          name: "API Support",
-        },
       },
       tags: [
-        { name: "Products", description: "General product operations" },
+        { name: "Products" },
         { name: "Products - Electronics" },
         { name: "Products - Clothing" },
         { name: "Products - Books" },
@@ -108,60 +231,22 @@ async function registerPlugins() {
     },
   });
 
-  await fastify.register(swaggerUI, {
-    routePrefix: "/docs",
-  });
+  await fastify.register(swaggerUI, { routePrefix: "/docs" });
 }
 
 /* ---------------------------------
-   ROUTE HANDLERS
+   ROUTES
 ----------------------------------*/
 
 function registerRoutes() {
-  /**
-   * GET /products
-   */
+  /* GET /products */
   fastify.get(
     "/products",
     {
       schema: {
         tags: ["Products"],
         summary: "Get all products with filters",
-        description:
-          "Retrieve products with pagination, filtering by category/price/rating, and search functionality",
-        querystring: {
-          type: "object",
-          properties: {
-            page: { type: "number", default: 1, description: "Page number" },
-            limit: {
-              type: "number",
-              default: 10,
-              description: "Items per page",
-            },
-            category: { type: "string", description: "Filter by category" },
-            minPrice: { type: "number", description: "Minimum price filter" },
-            maxPrice: { type: "number", description: "Maximum price filter" },
-            rating: {
-              type: "number",
-              description: "Minimum rating filter (1-5)",
-            },
-            search: {
-              type: "string",
-              description: "Search in title and description",
-            },
-            sortBy: {
-              type: "string",
-              description:
-                "Sort field (id, title, price, rating, stock, createdAt)",
-              default: "createdAt",
-            },
-            sortOrder: {
-              type: "string",
-              description: "Sort order (ASC or DESC)",
-              default: "DESC",
-            },
-          },
-        },
+        querystring: productsQuerySchema,
         response: {
           200: {
             type: "object",
@@ -169,33 +254,17 @@ function registerRoutes() {
               total: { type: "number" },
               page: { type: "number" },
               limit: { type: "number" },
-              data: {
-                type: "array",
-                items: productSchema,
-              },
+              data: { type: "array", items: productSchema },
             },
           },
+          ...errorResponse(400),
         },
       },
     },
-    async (req) => {
-      return getProducts({
-        page: toNumber(req.query.page, 1),
-        limit: toNumber(req.query.limit, 10),
-        category: req.query.category,
-        minPrice: toNumber(req.query.minPrice),
-        maxPrice: toNumber(req.query.maxPrice),
-        rating: toNumber(req.query.rating),
-        search: req.query.search,
-        sortBy: req.query.sortBy || "createdAt",
-        sortOrder: req.query.sortOrder || "DESC",
-      });
-    },
+    async (req) => getProducts(req.query),
   );
 
-  /**
-   * GET /products/:id
-   */
+  /* GET /products/:id */
   fastify.get(
     "/products/:id",
     {
@@ -205,43 +274,32 @@ function registerRoutes() {
         description: "Retrieve a specific product by its ID",
         params: {
           type: "object",
-          properties: {
-            id: { type: "number", description: "Product ID" },
-          },
           required: ["id"],
+          properties: { id: { type: "number" } },
         },
         response: {
           200: productSchema,
-          404: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
+          ...errorResponse(404),
         },
       },
     },
     async (req, reply) => {
-      const product = await getProductById(Number(req.params.id));
-
-      if (!product) {
+      const product = await getProductById(req.params.id);
+      if (!product)
         return reply.code(404).send({ message: "Product not found" });
-      }
       return product;
     },
   );
 
-  /**
-   * POST /products
-   */
+  /* POST /products */
   fastify.post(
     "/products",
     {
       schema: {
         tags: ["Products"],
-        summary: "Create new product",
+        summary: "Create a new product",
         description: "Add a new product to the catalog",
-        body: productRequestSchema,
+        body: productCreateSchema,
         response: {
           201: {
             type: "object",
@@ -250,37 +308,32 @@ function registerRoutes() {
               data: productSchema,
             },
           },
+          ...errorResponse(400),
         },
       },
     },
     async (req, reply) => {
       const newProduct = await createProduct(req.body);
-      reply.code(201);
-      return {
-        message: "Product created successfully",
-        data: newProduct,
-      };
+      return reply
+        .code(201)
+        .send({ message: "Product created successfully", data: newProduct });
     },
   );
 
-  /**
-   * PATCH /products/:id
-   */
+  /* PATCH /products/:id */
   fastify.patch(
     "/products/:id",
     {
       schema: {
         tags: ["Products"],
-        summary: "Update product",
+        summary: "Partially update a product",
         description: "Update an existing product by ID",
         params: {
           type: "object",
-          properties: {
-            id: { type: "number" },
-          },
           required: ["id"],
+          properties: { id: { type: "number" } },
         },
-        body: productRequestSchema,
+        body: productUpdateSchema,
         response: {
           200: {
             type: "object",
@@ -289,46 +342,33 @@ function registerRoutes() {
               data: productSchema,
             },
           },
-          404: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
+          ...errorResponse(400),
+          ...errorResponse(404),
         },
       },
     },
     async (req, reply) => {
-      const updated = await updateProduct(toNumber(req.params.id), req.body);
-      console.log("Updated_____: ", updated);
-
-      if (!updated) {
+      const updated = await updateProduct(req.params.id, req.body);
+      if (!updated)
         return reply.code(404).send({ message: "Product not found" });
-      }
-
-      return {
-        message: "Product updated successfully",
-        data: updated,
-      };
+      return reply
+        .code(200)
+        .send({ message: "Product updated successfully", data: updated });
     },
   );
 
-  /**
-   * DELETE /products/:id
-   */
+  /* DELETE /products/:id */
   fastify.delete(
     "/products/:id",
     {
       schema: {
         tags: ["Products"],
-        summary: "Delete product",
+        summary: "Delete a product",
         description: "Remove a product from the catalog",
         params: {
           type: "object",
-          properties: {
-            id: { type: "number" },
-          },
           required: ["id"],
+          properties: { id: { type: "number" } },
         },
         response: {
           200: {
@@ -338,32 +378,21 @@ function registerRoutes() {
               data: productSchema,
             },
           },
-          404: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-            },
-          },
+          ...errorResponse(404),
         },
       },
     },
     async (req, reply) => {
-      const deleted = await deleteProduct(Number(req.params.id));
-
-      if (!deleted) {
+      const deleted = await deleteProduct(req.params.id);
+      if (!deleted)
         return reply.code(404).send({ message: "Product not found" });
-      }
-
-      return {
-        message: "Product deleted successfully",
-        data: deleted,
-      };
+      return reply
+        .code(200)
+        .send({ message: "Product deleted successfully", data: deleted });
     },
   );
 
-  /**
-   * GET /categories
-   */
+  /* GET /categories */
   fastify.get(
     "/categories",
     {
@@ -371,23 +400,14 @@ function registerRoutes() {
         tags: ["Products"],
         summary: "Get all categories",
         description: "Retrieve list of all available product categories",
-        response: {
-          200: {
-            type: "array",
-            items: { type: "string" },
-          },
-        },
+        response: { 200: { type: "array", items: { type: "string" } } },
       },
     },
-    async () => {
-      return getCategories();
-    },
+    async () => getCategories(),
   );
 
-  /**
-   * CATEGORY ROUTES
-   */
-  const categoryRoutes = [
+  /* CATEGORY ROUTES (dynamic) */
+  const CATEGORIES = [
     "Electronics",
     "Clothing",
     "Books",
@@ -397,23 +417,19 @@ function registerRoutes() {
     "Toys",
   ];
 
-  for (const category of categoryRoutes) {
-    const tagName = `Products - ${category}`;
+  for (const category of CATEGORIES) {
+    const tag = `Products - ${category}`;
+    const slug = category.toLowerCase();
 
+    /* GET /categories/:slug/products */
     fastify.get(
-      `/categories/${category.toLowerCase()}/products`,
+      `/categories/${slug}/products`,
       {
         schema: {
-          tags: [tagName],
+          tags: [tag],
           summary: `Get ${category} products`,
           description: `Retrieve all products in the ${category} category with pagination`,
-          querystring: {
-            type: "object",
-            properties: {
-              page: { type: "number", default: 1 },
-              limit: { type: "number", default: 10 },
-            },
-          },
+          querystring: paginationQuerySchema,
           response: {
             200: {
               type: "object",
@@ -422,10 +438,7 @@ function registerRoutes() {
                 page: { type: "number" },
                 limit: { type: "number" },
                 category: { type: "string" },
-                data: {
-                  type: "array",
-                  items: productSchema,
-                },
+                data: { type: "array", items: productSchema },
               },
             },
           },
@@ -434,25 +447,19 @@ function registerRoutes() {
       async (req) => {
         const result = await getProductsByCategory(
           category,
-          toNumber(req.query.page, 1),
-          toNumber(req.query.limit, 10),
+          req.query.page,
+          req.query.limit,
         );
-
-        return {
-          ...result,
-          category,
-        };
+        return { ...result, category };
       },
     );
 
-    /**
-     * GET /categories/{category}/stats - Get category statistics
-     */
+    /* GET /categories/:slug/stats */
     fastify.get(
-      `/categories/${category.toLowerCase()}/stats`,
+      `/categories/${slug}/stats`,
       {
         schema: {
-          tags: [tagName],
+          tags: [tag],
           summary: `Get ${category} statistics`,
           description: `Retrieve statistics for ${category} products`,
           response: {
@@ -473,56 +480,57 @@ function registerRoutes() {
       },
       async () => {
         const result = await getProducts({ category, limit: 10000 });
-        if (result.data.length === 0) {
-          return {
-            category,
-            totalProducts: 0,
-            avgPrice: 0,
-            minPrice: 0,
-            maxPrice: 0,
-            avgRating: 0,
-            totalStock: 0,
-          };
-        }
 
-        const stats = result.data.reduce(
-          (acc, p) => {
-            acc.avgPrice += p.price || 0;
-            acc.minPrice = Math.min(acc.minPrice, p.price || 0);
-            acc.maxPrice = Math.max(acc.maxPrice, p.price || 0);
-            acc.avgRating += p.rating || 0;
-            acc.totalStock += p.stock || 0;
-            return acc;
-          },
+        const empty = {
+          category,
+          totalProducts: 0,
+          avgPrice: 0,
+          minPrice: 0,
+          maxPrice: 0,
+          avgRating: 0,
+          totalStock: 0,
+        };
+        if (!result.data.length) return empty;
+
+        const agg = result.data.reduce(
+          (acc, p) => ({
+            priceSum: acc.priceSum + (p.price ?? 0),
+            minPrice: Math.min(acc.minPrice, p.price ?? 0),
+            maxPrice: Math.max(acc.maxPrice, p.price ?? 0),
+            ratingSum: acc.ratingSum + (p.rating ?? 0),
+            totalStock: acc.totalStock + (p.stock ?? 0),
+          }),
           {
-            avgPrice: 0,
+            priceSum: 0,
             minPrice: Infinity,
             maxPrice: 0,
-            avgRating: 0,
+            ratingSum: 0,
             totalStock: 0,
           },
         );
 
+        const count = result.data.length;
         return {
           category,
-          totalProducts: result.data.length,
-          avgPrice: +(stats.avgPrice / result.data.length).toFixed(2),
-          minPrice: stats.minPrice,
-          maxPrice: stats.maxPrice,
-          avgRating: +(stats.avgRating / result.data.length).toFixed(2),
-          totalStock: stats.totalStock,
+          totalProducts: count,
+          avgPrice: +(agg.priceSum / count).toFixed(2),
+          minPrice: agg.minPrice,
+          maxPrice: agg.maxPrice,
+          avgRating: +(agg.ratingSum / count).toFixed(2),
+          totalStock: agg.totalStock,
         };
       },
     );
 
+    /* POST /categories/:slug/products */
     fastify.post(
-      `/categories/${category.toLowerCase()}/products`,
+      `/categories/${slug}/products`,
       {
         schema: {
-          tags: [tagName],
-          summary: `Create ${category} product`,
+          tags: [tag],
+          summary: `Create a ${category} product`,
           description: `Add a new product to the ${category} category`,
-          body: productRequestSchema,
+          body: productCreateSchema,
           response: {
             201: {
               type: "object",
@@ -531,33 +539,27 @@ function registerRoutes() {
                 data: productSchema,
               },
             },
+            ...errorResponse(400),
           },
         },
       },
       async (req, reply) => {
-        const newProduct = await createProduct({
-          ...req.body,
-          category,
-        });
-
-        reply.code(201);
-        return {
+        const newProduct = await createProduct({ ...req.body, category });
+        return reply.code(201).send({
           message: `${category} product created successfully`,
           data: newProduct,
-        };
+        });
       },
     );
   }
 
-  /**
-   * GET /statistics - Get overall API statistics
-   */
+  /* GET /statistics */
   fastify.get(
     "/statistics",
     {
       schema: {
         tags: ["Statistics"],
-        summary: "Get API statistics",
+        summary: "Get overall API statistics",
         description:
           "Retrieve overall statistics about all products in the database",
         response: {
@@ -577,14 +579,10 @@ function registerRoutes() {
         },
       },
     },
-    async () => {
-      return getStatistics();
-    },
+    async () => getStatistics(),
   );
 
-  /**
-   * GET /health - Health check endpoint
-   */
+  /* GET /health */
   fastify.get(
     "/health",
     {
@@ -603,17 +601,12 @@ function registerRoutes() {
         },
       },
     },
-    async () => {
-      return {
-        status: "ok",
-        timestamp: new Date().toISOString(),
-      };
-    },
+    async () => ({ status: "ok", timestamp: new Date().toISOString() }),
   );
 }
 
 /* ---------------------------------
-   SERVER INITIALIZATION
+   BOOT
 ----------------------------------*/
 
 const start = async () => {
@@ -621,8 +614,11 @@ const start = async () => {
     initializeDatabase();
     fastify.log.info("✓ Database initialized");
 
+    registerErrorHandlers();
+    fastify.log.info("✓ Error handlers registered");
+
     await registerPlugins();
-    fastify.log.info("✓ Swagger registered");
+    fastify.log.info("✓ Plugins registered");
 
     registerRoutes();
     fastify.log.info("✓ Routes registered");
@@ -630,12 +626,12 @@ const start = async () => {
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
 
     console.log("\n========================================");
-    console.log("✨ Server running successfully!");
+    console.log("✨ Server running!");
     console.log("========================================");
-    console.log("API:      http://localhost:3001");
-    console.log("Docs:     http://localhost:3001/docs");
-    console.log("Health:   http://localhost:3001/health");
-    console.log("Stats:    http://localhost:3001/statistics");
+    console.log("API:    http://localhost:3001");
+    console.log("Docs:   http://localhost:3001/docs");
+    console.log("Health: http://localhost:3001/health");
+    console.log("Stats:  http://localhost:3001/statistics");
     console.log("========================================\n");
   } catch (err) {
     fastify.log.error(err);
