@@ -22,7 +22,6 @@ const {
   updateProduct,
   deleteProduct,
   getCategories,
-  getProductsByCategory,
   getStatistics,
 } = require("./db");
 
@@ -216,17 +215,7 @@ async function registerPlugins() {
           "Amazon-like CRUD API with SQLite, search, filters, and category-wise organization",
         version: "1.0.0",
       },
-      tags: [
-        { name: "Products" },
-        { name: "Products - Electronics" },
-        { name: "Products - Clothing" },
-        { name: "Products - Books" },
-        { name: "Products - Sports" },
-        { name: "Products - Home" },
-        { name: "Products - Beauty" },
-        { name: "Products - Toys" },
-        { name: "Statistics" },
-      ],
+      tags: [{ name: "Products" }, { name: "Statistics" }],
       servers: [{ url: "http://localhost:3001" }],
     },
   });
@@ -397,7 +386,7 @@ function registerRoutes() {
     "/categories",
     {
       schema: {
-        tags: ["Products"],
+        tags: ["Categories"],
         summary: "Get all categories",
         description: "Retrieve list of all available product categories",
         response: { 200: { type: "array", items: { type: "string" } } },
@@ -405,153 +394,6 @@ function registerRoutes() {
     },
     async () => getCategories(),
   );
-
-  /* CATEGORY ROUTES (dynamic) */
-  const CATEGORIES = [
-    "Electronics",
-    "Clothing",
-    "Books",
-    "Sports",
-    "Home",
-    "Beauty",
-    "Toys",
-  ];
-
-  for (const category of CATEGORIES) {
-    const tag = `Products - ${category}`;
-    const slug = category.toLowerCase();
-
-    /* GET /categories/:slug/products */
-    fastify.get(
-      `/categories/${slug}/products`,
-      {
-        schema: {
-          tags: [tag],
-          summary: `Get ${category} products`,
-          description: `Retrieve all products in the ${category} category with pagination`,
-          querystring: paginationQuerySchema,
-          response: {
-            200: {
-              type: "object",
-              properties: {
-                total: { type: "number" },
-                page: { type: "number" },
-                limit: { type: "number" },
-                category: { type: "string" },
-                data: { type: "array", items: productSchema },
-              },
-            },
-          },
-        },
-      },
-      async (req) => {
-        const result = await getProductsByCategory(
-          category,
-          req.query.page,
-          req.query.limit,
-        );
-        return { ...result, category };
-      },
-    );
-
-    /* GET /categories/:slug/stats */
-    fastify.get(
-      `/categories/${slug}/stats`,
-      {
-        schema: {
-          tags: [tag],
-          summary: `Get ${category} statistics`,
-          description: `Retrieve statistics for ${category} products`,
-          response: {
-            200: {
-              type: "object",
-              properties: {
-                category: { type: "string" },
-                totalProducts: { type: "number" },
-                avgPrice: { type: "number" },
-                minPrice: { type: "number" },
-                maxPrice: { type: "number" },
-                avgRating: { type: "number" },
-                totalStock: { type: "number" },
-              },
-            },
-          },
-        },
-      },
-      async () => {
-        const result = await getProducts({ category, limit: 10000 });
-
-        const empty = {
-          category,
-          totalProducts: 0,
-          avgPrice: 0,
-          minPrice: 0,
-          maxPrice: 0,
-          avgRating: 0,
-          totalStock: 0,
-        };
-        if (!result.data.length) return empty;
-
-        const agg = result.data.reduce(
-          (acc, p) => ({
-            priceSum: acc.priceSum + (p.price ?? 0),
-            minPrice: Math.min(acc.minPrice, p.price ?? 0),
-            maxPrice: Math.max(acc.maxPrice, p.price ?? 0),
-            ratingSum: acc.ratingSum + (p.rating ?? 0),
-            totalStock: acc.totalStock + (p.stock ?? 0),
-          }),
-          {
-            priceSum: 0,
-            minPrice: Infinity,
-            maxPrice: 0,
-            ratingSum: 0,
-            totalStock: 0,
-          },
-        );
-
-        const count = result.data.length;
-        return {
-          category,
-          totalProducts: count,
-          avgPrice: +(agg.priceSum / count).toFixed(2),
-          minPrice: agg.minPrice,
-          maxPrice: agg.maxPrice,
-          avgRating: +(agg.ratingSum / count).toFixed(2),
-          totalStock: agg.totalStock,
-        };
-      },
-    );
-
-    /* POST /categories/:slug/products */
-    fastify.post(
-      `/categories/${slug}/products`,
-      {
-        schema: {
-          tags: [tag],
-          summary: `Create a ${category} product`,
-          description: `Add a new product to the ${category} category`,
-          body: productCreateSchema,
-          response: {
-            201: {
-              type: "object",
-              properties: {
-                message: { type: "string" },
-                data: productSchema,
-              },
-            },
-            ...errorResponse(400),
-          },
-        },
-      },
-      async (req, reply) => {
-        const newProduct = await createProduct({ ...req.body, category });
-        return reply.code(201).send({
-          message: `${category} product created successfully`,
-          data: newProduct,
-        });
-      },
-    );
-  }
 
   /* GET /statistics */
   fastify.get(
@@ -605,11 +447,7 @@ function registerRoutes() {
   );
 }
 
-/* ---------------------------------
-   BOOT
-----------------------------------*/
-
-const start = async () => {
+void (async () => {
   try {
     initializeDatabase();
     fastify.log.info("✓ Database initialized");
@@ -637,6 +475,4 @@ const start = async () => {
     fastify.log.error(err);
     process.exit(1);
   }
-};
-
-start();
+})();
