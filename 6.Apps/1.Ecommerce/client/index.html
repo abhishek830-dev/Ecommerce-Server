@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ecommerce Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-brand">🛒 Ecomm Manager</div>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Dashboard</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="add-product.html">Add Product</a></li>
+        <li><a href="categories.html">Categories</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+      <h1 class="page-title">Dashboard</h1>
+
+      <!-- Stats Section -->
+      <section class="stats-grid" id="statsGrid">
+        <!-- dashboard.js yahan cards inject karega -->
+        <p>Loading stats...</p>
+      </section>
+
+      <!-- Quick Links Section -->
+      <section class="quick-links">
+        <h2>Quick Actions</h2>
+        <div class="quick-links-grid">
+          <a href="products.html" class="quick-card"> 📦 View All Products </a>
+          <a href="add-product.html" class="quick-card"> ➕ Add New Product </a>
+          <a href="categories.html" class="quick-card">
+            🏷️ Browse Categories
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

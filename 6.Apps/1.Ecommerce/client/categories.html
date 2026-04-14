@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Categories</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-brand">🛒 Ecomm Manager</div>
+    <ul class="nav-links">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="products.html">Products</a></li>
+      <li><a href="add-product.html">Add Product</a></li>
+      <li><a href="categories.html" class="active">Categories</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+
+    <h1 class="page-title">Categories</h1>
+
+    <!-- Categories List -->
+    <section id="categoriesList" class="categories-grid">
+      <p>Loading categories...</p>
+    </section>
+
+    <!-- Selected Category Products -->
+    <section id="categoryProducts" class="category-products" style="display:none;">
+      <div class="category-products-header">
+        <h2 id="categoryTitle"></h2>
+        <button id="closeBtn" class="btn btn-secondary">✖ Close</button>
+      </div>
+
+      <!-- Category Stats -->
+      <div id="categoryStats" class="stats-grid"></div>
+
+      <!-- Products Grid -->
+      <div id="categoryProductsGrid" class="products-grid"></div>
+
+    </section>
+
+  </main>
+
+  <script src="config.js"></script>
+  <script src="categories.js"></script>
+
+</body>
+</html>
