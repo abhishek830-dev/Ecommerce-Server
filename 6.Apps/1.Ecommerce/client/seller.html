@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard - E-Commerce Store</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">E-Shop Seller</div>
+        <nav class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="#products">Products</a>
+          <a href="#add-product">Add Product</a>
+        </nav>
+        <div class="auth-buttons">
+          <button id="login-btn" class="btn btn-secondary">Login</button>
+          <button id="signup-btn" class="btn btn-primary">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <section id="products">
+        <h1>Seller Dashboard</h1>
+        <p>Manage your products</p>
+
+        <!-- Products Management -->
+        <div id="products-management" style="margin-bottom: 3rem;">
+          <h2>Product List</h2>
+          <div id="products-list">
+            <!-- Products will be loaded here -->
+          </div>
+        </div>
+      </section>
+
+      <section id="add-product">
+        <h2>Add New Product</h2>
+        <form id="add-product-form" style="max-width: 600px;">
+          <div class="form-group">
+            <label for="product-title" class="form-label">Title</label>
+            <input type="text" id="product-title" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="product-description" class="form-label">Description</label>
+            <textarea id="product-description" class="form-input" rows="4" required></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-price" class="form-label">Price</label>
+              <input type="number" id="product-price" class="form-input" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="product-stock" class="form-label">Stock</label>
+              <input type="number" id="product-stock" class="form-input" min="0" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-category" class="form-label">Category</label>
+              <input type="text" id="product-category" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="product-brand" class="form-label">Brand</label>
+              <input type="text" id="product-brand" class="form-input" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="product-rating" class="form-label">Rating (1-5)</label>
+            <input type="number" id="product-rating" class="form-input" step="0.1" min="1" max="5" value="4.0">
+          </div>
+          <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+      </section>
+
+      <!-- Edit Product Modal -->
+      <div id="edit-product-modal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title">Edit Product</h2>
+          </div>
+          <div class="modal-body">
+            <form id="edit-product-form">
+              <input type="hidden" id="edit-product-id">
+              <div class="form-group">
+                <label for="edit-product-title" class="form-label">Title</label>
+                <input type="text" id="edit-product-title" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label for="edit-product-description" class="form-label">Description</label>
+                <textarea id="edit-product-description" class="form-input" rows="4" required></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-product-price" class="form-label">Price</label>
+                  <input type="number" id="edit-product-price" class="form-input" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-product-stock" class="form-label">Stock</label>
+                  <input type="number" id="edit-product-stock" class="form-input" min="0" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-product-category" class="form-label">Category</label>
+                  <input type="text" id="edit-product-category" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="edit-product-brand" class="form-label">Brand</label>
+                  <input type="text" id="edit-product-brand" class="form-input" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="edit-product-rating" class="form-label">Rating (1-5)</label>
+                <input type="number" id="edit-product-rating" class="form-input" step="0.1" min="1" max="5">
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Update Product</button>
+                <button type="button" id="cancel-edit" class="btn btn-secondary">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 E-Shop Seller Dashboard. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/seller.js"></script>
+</body>
+</html>
