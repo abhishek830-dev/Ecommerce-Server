@@ -5,15 +5,33 @@ document.addEventListener("DOMContentLoaded", function () {
   updateCartUI();
 
   // Event listeners
-  $(".close-cart").addEventListener("click", () =>
-    $(".cart-sidebar").classList.remove("open"),
-  );
-  $("#checkout-btn").addEventListener("click", handleCheckout);
-  $("#address-form").addEventListener("submit", handleAddressSubmit);
-  $("#print-receipt").addEventListener("click", () => window.print());
-  $("#close-receipt").addEventListener("click", () =>
-    hideModal("receipt-modal"),
-  );
+  const closeCartBtn = $(".close-cart");
+  const checkoutBtn = $("#checkout-btn");
+  const addressForm = $("#address-form");
+  const printReceiptBtn = $("#print-receipt");
+  const closeReceiptBtn = $("#close-receipt");
+
+  if (closeCartBtn) {
+    closeCartBtn.addEventListener("click", () =>
+      $(".cart-sidebar").classList.remove("open"),
+    );
+  }
+
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener("click", handleCheckout);
+  }
+
+  if (addressForm) {
+    addressForm.addEventListener("submit", handleAddressSubmit);
+  }
+
+  if (printReceiptBtn) {
+    printReceiptBtn.addEventListener("click", () => window.print());
+  }
+
+  if (closeReceiptBtn) {
+    closeReceiptBtn.addEventListener("click", () => hideModal("receipt-modal"));
+  }
 
   // Event delegation for cart item actions
   addEventListenerToDynamicElements(
@@ -29,6 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
   addEventListenerToDynamicElements("click", ".remove-item", handleRemoveItem);
 });
 
+//----------------------------------------------------------------------------------------------------------------
 function updateCartUI() {
   const cart = getCart();
   const cartItemsContainer = $("#cart-items");

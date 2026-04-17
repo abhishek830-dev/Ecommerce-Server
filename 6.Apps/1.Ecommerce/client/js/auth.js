@@ -23,12 +23,29 @@ document.addEventListener("DOMContentLoaded", function () {
   // Event listeners
   $("#login-btn").addEventListener("click", () => showModal("login-modal"));
   $("#signup-btn").addEventListener("click", () => showModal("signup-modal"));
-  $("#switch-to-signup").addEventListener("click", (e) => {
+//   $("#switch-to-signup").addEventListener("click", (e) => {
+//     e.preventDefault();
+//     hideModal("login-modal");
+//     showModal("signup-modal");
+//   });
+//   $("#switch-to-login").addEventListener("click", (e) => {
+//     e.preventDefault();
+//     hideModal("signup-modal");
+//     showModal("login-modal");
+//   });
+
+const switchToSignup = $("#switch-to-signup");
+if (switchToSignup) {
+  switchToSignup.addEventListener("click", (e) => {
     e.preventDefault();
     hideModal("login-modal");
     showModal("signup-modal");
   });
-  $("#switch-to-login").addEventListener("click", (e) => {
+}
+
+const switchToLogin = $("#switch-to-login");
+if (switchToLogin) {
+  switchToLogin.addEventListener("click", (e) => {
     e.preventDefault();
     hideModal("signup-modal");
     showModal("login-modal");

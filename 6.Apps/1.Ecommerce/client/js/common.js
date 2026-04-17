@@ -14,9 +14,11 @@ function $$(selector) {
 // API utilities
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const hasBody = options.body !== undefined;
+
   const config = {
     headers: {
-      "Content-Type": "application/json",
+      ...(hasBody && { "Content-Type": "application/json" }), // sirf tab jab body ho
       ...options.headers,
     },
     ...options,
@@ -179,30 +181,30 @@ function formatRating(rating) {
 }
 
 const categoryImageMap = {
-  electronics: "electronics",
-  jewelry: "jewelry",
-  "men's clothing": "mens fashion",
-  "women's clothing": "womens fashion",
-  toys: "toys",
-  books: "books",
-  furniture: "furniture",
-  beauty: "beauty products",
-  groceries: "grocery",
-  automotive: "car accessories",
-  tools: "tools",
-  sports: "sports gear",
-  outdoors: "outdoor",
-  home: "home decor",
+  electronics: "https://img.icons8.com/fluency/400/laptop.png",
+  jewelry: "https://img.icons8.com/fluency/400/diamond-ring.png",
+  jewelery: "https://img.icons8.com/fluency/400/diamond-ring.png",
+  clothing: "https://img.icons8.com/fluency/400/t-shirt.png",
+  "men's clothing": "https://img.icons8.com/fluency/400/t-shirt.png",
+  "women's clothing": "https://img.icons8.com/fluency/400/dress.png",
+  toys: "https://img.icons8.com/fluency/400/teddy-bear.png",
+  books: "https://img.icons8.com/fluency/400/book.png",
+  furniture: "https://img.icons8.com/fluency/400/couch.png",
+  beauty: "https://img.icons8.com/fluency/400/lipstick.png",
+  groceries: "https://img.icons8.com/fluency/400/grocery-bag.png",
+  automotive: "https://img.icons8.com/fluency/400/car.png",
+  tools: "https://img.icons8.com/fluency/400/wrench.png",
+  sports: "https://img.icons8.com/fluency/400/football2.png",
+  outdoors: "https://img.icons8.com/fluency/400/tent.png",
+  home: "https://img.icons8.com/fluency/400/home.png",
 };
 
 function getCategoryImage(category, size = "400x300") {
   const normalized = (category || "product").toLowerCase().trim();
-  const query = categoryImageMap[normalized] || normalized || "product";
-  const sig = Array.from(query).reduce(
-    (sum, char) => sum + char.charCodeAt(0),
-    0,
+  return (
+    categoryImageMap[normalized] ||
+    "https://img.icons8.com/fluency/400/shopping-bag.png"
   );
-  return `https://source.unsplash.com/featured/${size}/?${encodeURIComponent(query)}&sig=${sig}`;
 }
 
 function ensureToastContainer() {

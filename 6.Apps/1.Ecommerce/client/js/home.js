@@ -69,6 +69,7 @@ async function loadProducts(page = 1, filters = {}) {
     const { data: products, total, page: currentPageNum, limit } = response;
 
     displayProducts(products);
+
     displayPagination(total, currentPageNum, limit);
 
     currentPage = currentPageNum;
@@ -95,6 +96,7 @@ function displayProducts(products) {
         <div class="product-card">
           <img src="${imageUrl}" alt="${product.title}" class="product-image">
           <div class="product-info">
+            <span class="product-badge">${product.category}</span>
             <h3 class="product-title">${product.title}</h3>
             <div class="product-price">${formatPrice(product.price)}</div>
             <div class="product-rating">
@@ -120,35 +122,63 @@ function displayPagination(total, currentPage, limit) {
     return;
   }
 
-  let paginationHTML =
-    '<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">';
+  let html = `<div class="pagination">`;
 
-  // Previous button
-  if (currentPage > 1) {
-    paginationHTML += `<button class="btn btn-secondary pagination-btn" data-page="${currentPage - 1}">Previous</button>`;
-  }
+  // 🔹 Prev
+  html += `
+    <button class="page-btn nav-btn ${currentPage === 1 ? "disabled" : ""}" 
+            data-page="${currentPage - 1}">
+      Prev
+    </button>
+  `;
 
-  // Page numbers
+  // 🔹 Page range (clean)
   const startPage = Math.max(1, currentPage - 2);
   const endPage = Math.min(totalPages, currentPage + 2);
 
+  if (startPage > 1) {
+    html += `<button class="page-btn" data-page="1">1</button>`;
+    if (startPage > 2) html += `<span>...</span>`;
+  }
+
   for (let i = startPage; i <= endPage; i++) {
-    const activeClass = i === currentPage ? "btn-primary" : "btn-secondary";
-    paginationHTML += `<button class="btn ${activeClass} pagination-btn" data-page="${i}">${i}</button>`;
+    html += `
+      <button class="page-btn ${i === currentPage ? "active" : ""}" 
+              data-page="${i}">
+        ${i}
+      </button>
+    `;
   }
 
-  // Next button
-  if (currentPage < totalPages) {
-    paginationHTML += `<button class="btn btn-secondary pagination-btn" data-page="${currentPage + 1}">Next</button>`;
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) html += `<span>...</span>`;
+    html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
   }
 
-  paginationHTML += "</div>";
-  container.innerHTML = paginationHTML;
+  // 🔹 Next
+  html += `
+    <button class="page-btn nav-btn ${currentPage === totalPages ? "disabled" : ""}" 
+            data-page="${currentPage + 1}">
+      Next
+    </button>
+  `;
 
-  // Add event listeners to pagination buttons
-  $$(".pagination-btn").forEach((btn) => {
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // QuerySelector based active handling
+  document.querySelectorAll(".page-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
+      if (this.classList.contains("disabled")) return;
+
       const page = parseInt(this.dataset.page);
+
+      // 🔥 URL update karo
+      const url = new URL(window.location);
+      url.searchParams.set("page", page);
+      window.history.pushState({}, "", url);
+
+      // ✅ Load data
       loadProducts(page, currentFilters);
     });
   });
@@ -186,6 +216,23 @@ function clearFilters() {
 
   currentFilters = {};
   loadProducts(1, currentFilters);
+}
+
+async function handleAddToCart(e) {
+  e.preventDefault();
+  const productId = parseInt(e.target.dataset.productId);
+  if (!productId) {
+    showNotification("Invalid product selected.", "error");
+    return;
+  }
+
+  try {
+    const product = await apiRequest(`/products/${productId}`);
+    addToCart(product);
+  } catch (error) {
+    console.error("Error adding product to cart:", error);
+    showNotification("Failed to add product to cart", "error");
+  }
 }
 
 async function handleProductClick(e) {

@@ -170,11 +170,77 @@ main {
   font-size: 0.95rem;
 }
 
+.filters {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.filters .form-row {
+  flex-wrap: wrap;
+}
+
+.filters .form-group {
+  flex: 1 1 220px;
+}
+
+.filters .btn {
+  min-width: 130px;
+}
+
 /* Products Grid */
 .products-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.85rem;
+  gap: 1rem;
+}
+
+.product-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.product-image {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  background-color: #fafafa;
+  padding: 1rem;
+}
+
+.product-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.product-badge {
+  display: inline-block;
+  background-color: rgba(0, 123, 255, 0.1);
+  color: var(--primary-color);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.product-card .btn {
+  margin-top: auto;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  padding: 0.85rem 1rem;
 }
 
 .product-card {
@@ -747,3 +813,51 @@ footer {
   padding: 0;
   color: var(--secondary-color);
 }
+
+  /* Container */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      font-family: Arial, sans-serif;
+    }
+  
+    /* Buttons */
+    .page-btn {
+      min-width: 36px;
+      height: 36px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      color: #333
+    }
+  
+    /* Hover */
+    .page-btn:hover {
+      background: #f0f5ff;
+    }
+  
+    /* Active (Flipkart style 🔥) */
+        .page-btn.active {
+          background-color: #2874f0;
+          color: white;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+  
+    /* Prev/Next special */
+    .page-btn.nav-btn {
+      padding: 0 12px;
+    }
+  
+    /* Disabled */
+    .page-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }

@@ -127,13 +127,18 @@ The client communicates with the server API at `http://localhost:3001`:
 - `DELETE /products/:id` - Delete product
 - `GET /categories` - Get all categories
 
-## Authentication
+## Image Handling
 
-The authentication is implemented as a mock system using localStorage:
+The application uses reliable, category-consistent images from external services:
 
-- User data is stored locally in the browser
-- No real security - for demonstration purposes only
-- In production, this should be replaced with proper authentication
+- **Primary Source**: Picsum.photos API with seed-based consistency
+- **Secondary Fallback**: Placeholder.com for additional reliability
+- **Consistency**: All products in the same category show identical images using seed parameter
+- **Reliability**: Picsum.photos is highly available and consistent
+- **Error Handling**: Automatic fallback on image load errors
+- **Database**: All product images stored in products.json with category-based URLs
+
+All 220+ products now have category-consistent image URLs that are reliable and always available.
 
 ## Responsive Design
 
@@ -180,11 +185,18 @@ The application uses CSS media queries for different screen sizes:
    - Check browser console for errors
    - Ensure database is seeded
 
-3. **Cart Not Working**:
+3. **Images Not Displaying**:
+   - Product images use reliable services (Picsum.photos + Placeholder.com)
+   - Check browser console for any error messages
+   - Images automatically fallback if primary service fails
+   - All products in database have image URLs stored
+   - Category images are consistent across all views (grid, modal, cart)
+
+4. **Cart Not Working**:
    - Check browser localStorage support
    - Clear browser data if issues persist
 
-4. **Responsive Issues**:
+5. **Responsive Issues**:
    - Check CSS media queries
    - Test on different devices/browsers
 
@@ -195,6 +207,17 @@ Open browser developer tools (F12) to:
 - View console errors
 - Inspect network requests
 - Check localStorage data
+
+## Development Challenges
+
+This project faced several development challenges that were overcome during implementation. See `CHALLENGES.md` for a detailed breakdown of issues encountered and solutions implemented, including:
+
+- UI sizing and responsiveness issues
+- External service integration (image loading)
+- JavaScript runtime errors
+- Cross-browser compatibility
+- Performance optimization
+- Code maintainability
 
 ## Future Enhancements
 
