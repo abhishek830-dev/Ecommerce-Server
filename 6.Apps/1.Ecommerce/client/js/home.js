@@ -5,7 +5,35 @@ let currentFilters = {};
 
 document.addEventListener("DOMContentLoaded", function () {
   loadCategories();
-  loadProducts();
+  // 🔥 URL se data read karo
+  const params = new URLSearchParams(window.location.search);
+
+  currentPage = parseInt(params.get("page")) || 1;
+
+  currentFilters = {
+    category: params.get("category") || "",
+    search: params.get("search") || "",
+    minPrice: params.get("minPrice") || "",
+    maxPrice: params.get("maxPrice") || "",
+    rating: params.get("rating") || "",
+    sortBy: params.get("sortBy") || "",
+    sortOrder: params.get("sortOrder") || "",
+  };
+
+  // empty values remove karo
+  Object.keys(currentFilters).forEach((key) => {
+    if (!currentFilters[key]) delete currentFilters[key];
+  });
+
+  // 🔥 UI me values set karo (optional but important)
+  $("#category-filter").value = params.get("category") || "";
+  $("#search-filter").value = params.get("search") || "";
+  $("#min-price-filter").value = params.get("minPrice") || "";
+  $("#max-price-filter").value = params.get("maxPrice") || "";
+  $("#rating-filter").value = params.get("rating") || "";
+
+  // 🔥 FINAL CALL (IMPORTANT)
+  loadProducts(currentPage, currentFilters);
 
   // Event listeners
   $("#apply-filters").addEventListener("click", applyFilters);
@@ -203,6 +231,19 @@ function applyFilters() {
   if (sortBy) currentFilters.sortBy = sortBy;
   if (sortOrder) currentFilters.sortOrder = sortOrder;
 
+  const url = new URL(window.location);
+
+  // reset page
+  url.searchParams.set("page", 1);
+
+  // filters add karo
+  Object.keys(currentFilters).forEach((key) => {
+    url.searchParams.set(key, currentFilters[key]);
+  });
+
+  window.history.pushState({}, "", url);
+
+  // load
   loadProducts(1, currentFilters);
 }
 
@@ -215,6 +256,12 @@ function clearFilters() {
   $("#sort-filter").value = "createdAt_DESC";
 
   currentFilters = {};
+
+  const url = new URL(window.location);
+  url.search = ""; // pura clean
+
+  window.history.pushState({}, "", url);
+
   loadProducts(1, currentFilters);
 }
 

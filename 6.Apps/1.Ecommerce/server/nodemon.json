@@ -1,0 +1,8 @@
+{
+  "watch": ["server.js", "db.js"],
+  "ignore": [".nodemonignore"],
+  "delay": 1000,
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

@@ -205,7 +205,13 @@ function registerErrorHandlers() {
 ----------------------------------*/
 
 async function registerPlugins() {
-  await fastify.register(cors, { origin: "*" });
+  
+
+  await fastify.register(cors, {
+    origin: "*",
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
 
   await fastify.register(swagger, {
     openapi: {
@@ -464,13 +470,23 @@ void (async () => {
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
 
     console.log("\n========================================");
-    console.log("✨ Server running!");
+    console.log("✨ Server running with graceful shutdown!");
     console.log("========================================");
     console.log("API:    http://localhost:3001");
     console.log("Docs:   http://localhost:3001/docs");
     console.log("Health: http://localhost:3001/health");
     console.log("Stats:  http://localhost:3001/statistics");
     console.log("========================================\n");
+
+    // Graceful shutdown handlers
+    const signals = ["SIGTERM", "SIGINT"];
+    signals.forEach((signal) => {
+      process.on(signal, async () => {
+        fastify.log.info(`Received ${signal}, closing server gracefully...`);
+        await fastify.close();
+        process.exit(0);
+      });
+    });
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

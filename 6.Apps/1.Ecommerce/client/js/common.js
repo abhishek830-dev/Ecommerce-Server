@@ -180,29 +180,29 @@ function formatRating(rating) {
   return stars;
 }
 
-const categoryImageMap = {
-  electronics: "https://img.icons8.com/fluency/400/laptop.png",
-  jewelry: "https://img.icons8.com/fluency/400/diamond-ring.png",
-  jewelery: "https://img.icons8.com/fluency/400/diamond-ring.png",
-  clothing: "https://img.icons8.com/fluency/400/t-shirt.png",
-  "men's clothing": "https://img.icons8.com/fluency/400/t-shirt.png",
-  "women's clothing": "https://img.icons8.com/fluency/400/dress.png",
-  toys: "https://img.icons8.com/fluency/400/teddy-bear.png",
-  books: "https://img.icons8.com/fluency/400/book.png",
-  furniture: "https://img.icons8.com/fluency/400/couch.png",
-  beauty: "https://img.icons8.com/fluency/400/lipstick.png",
-  groceries: "https://img.icons8.com/fluency/400/grocery-bag.png",
-  automotive: "https://img.icons8.com/fluency/400/car.png",
-  tools: "https://img.icons8.com/fluency/400/wrench.png",
-  sports: "https://img.icons8.com/fluency/400/football2.png",
-  outdoors: "https://img.icons8.com/fluency/400/tent.png",
-  home: "https://img.icons8.com/fluency/400/home.png",
+const categoryImages = {
+  electronics: "https://cdn-icons-png.flaticon.com/512/1041/1041888.png",
+  jewelry: "https://cdn-icons-png.flaticon.com/512/833/833472.png",
+  jewelery: "https://cdn-icons-png.flaticon.com/512/833/833472.png",
+  clothing: "https://cdn-icons-png.flaticon.com/512/892/892458.png",
+  "men's clothing": "https://cdn-icons-png.flaticon.com/512/892/892458.png",
+  "women's clothing": "https://cdn-icons-png.flaticon.com/512/892/892513.png",
+  toys: "https://cdn-icons-png.flaticon.com/512/3082/3082031.png",
+  books: "https://cdn-icons-png.flaticon.com/512/29/29302.png",
+  furniture: "https://cdn-icons-png.flaticon.com/512/3075/3075977.png",
+  beauty: "https://cdn-icons-png.flaticon.com/512/3050/3050153.png",
+  groceries: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+  automotive: "https://cdn-icons-png.flaticon.com/512/743/743007.png",
+  tools: "https://cdn-icons-png.flaticon.com/512/3523/3523887.png",
+  sports: "https://cdn-icons-png.flaticon.com/512/857/857455.png",
+  outdoors: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+  home: "https://cdn-icons-png.flaticon.com/512/25/25694.png",
 };
 
 function getCategoryImage(category, size = "400x300") {
   const normalized = (category || "product").toLowerCase().trim();
   return (
-    categoryImageMap[normalized] ||
+    categoryImages[normalized] ||
     "https://img.icons8.com/fluency/400/shopping-bag.png"
   );
 }
